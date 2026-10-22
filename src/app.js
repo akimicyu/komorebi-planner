@@ -26,8 +26,57 @@ function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (character) => entities[character]);
 }
 
-function getTaskDuration(task) {
-  return task.milestone ? 0 : toDayNumber(task.end) - toDayNumber(task.start) + 1;
+// 月曜（1970-01-05）を起点に、土日を同じ作業日の境界へ写す。
+function toScheduleDay(dayNumber, excludeWeekends = false) {
+  if (!excludeWeekends) {
+    return dayNumber;
+  }
+  const daysFromMonday = dayNumber - 4;
+  const weeks = Math.floor(daysFromMonday / 7);
+  const weekday = daysFromMonday - weeks * 7;
+  return weeks * 5 + Math.min(weekday, 5);
+}
+
+function fromScheduleDay(scheduleDay, excludeWeekends = false) {
+  if (!excludeWeekends) {
+    return scheduleDay;
+  }
+  const weeks = Math.floor(scheduleDay / 5);
+  return 4 + weeks * 7 + (scheduleDay - weeks * 5);
+}
+
+function getTaskDuration(task, excludeWeekends = false) {
+  return task.milestone
+    ? 0
+    : toScheduleDay(toDayNumber(task.end) + 1, excludeWeekends) -
+        toScheduleDay(toDayNumber(task.start), excludeWeekends);
+}
+
+function getTaskFinish(startDay, duration, excludeWeekends = false) {
+  if (duration === 0) {
+    return startDay;
+  }
+  // 金曜までの作業の完了境界は土曜。休日のマイルストーンも指定できる。
+  return (
+    fromScheduleDay(toScheduleDay(startDay, excludeWeekends) + duration - 1, excludeWeekends) + 1
+  );
+}
+
+function getProgressDay(task, progress, excludeWeekends = false) {
+  const startDay = toDayNumber(task.start);
+  if (task.milestone) {
+    return startDay;
+  }
+  if (progress === 100) {
+    return toDayNumber(task.end) + 1;
+  }
+  const completedDays = (getTaskDuration(task, excludeWeekends) * progress) / 100;
+  const wholeDays = Math.floor(completedDays);
+  return (
+    fromScheduleDay(toScheduleDay(startDay, excludeWeekends) + wholeDays, excludeWeekends) +
+    completedDays -
+    wholeDays
+  );
 }
 
 // 矢印は後続バーの左側へ右向きに入れる。近すぎる場合は行間へ回り込む。
@@ -56,7 +105,7 @@ function getDependencyPoints(sourceX, targetX, sourceRow, targetRow, rowHeight =
   ];
 }
 // 先行順で最早日、後続順で最遅日を計算し、その差を総余裕とする。
-function analyzeSchedule(tasks, target = 'all') {
+function analyzeSchedule(tasks, target = 'all', excludeWeekends = false) {
   const tasksById = new Map(tasks.map((task) => [task.id, task]));
   const taskOrder = [];
   const visitedTaskIds = new Set();
@@ -100,11 +149,23 @@ function analyzeSchedule(tasks, target = 'all') {
   }
   // 通常タスクの終了は、終了日の翌日を表す排他的な境界。
   for (const task of taskOrder) {
-    earliestStarts[task.id] = Math.max(
+    const duration = getTaskDuration(task, excludeWeekends);
+    if (!task.milestone && duration < 1) {
+      throw Error(`「${task.name}」の計画期間には平日を1日以上含めてください`);
+    }
+    const earliestDay = Math.max(
       toDayNumber(task.start),
-      ...task.deps.map((predecessorId) => earliestFinishes[predecessorId] + (task.lag || 0)),
+      ...task.deps.map((predecessorId) => {
+        const finishDay = earliestFinishes[predecessorId];
+        return task.lag
+          ? fromScheduleDay(toScheduleDay(finishDay, excludeWeekends) + task.lag, excludeWeekends)
+          : finishDay;
+      }),
     );
-    earliestFinishes[task.id] = earliestStarts[task.id] + getTaskDuration(task);
+    earliestStarts[task.id] = task.milestone
+      ? earliestDay
+      : fromScheduleDay(toScheduleDay(earliestDay, excludeWeekends), excludeWeekends);
+    earliestFinishes[task.id] = getTaskFinish(earliestStarts[task.id], duration, excludeWeekends);
   }
   const finish = relevantTaskIds.size
     ? Math.max(...[...relevantTaskIds].map((id) => earliestFinishes[id]))
@@ -120,12 +181,25 @@ function analyzeSchedule(tasks, target = 'all') {
       ? Math.min(
           ...successors.map((successor) => latestStarts[successor.id] - (successor.lag || 0)),
         )
-      : finish;
-    latestStarts[task.id] = latestFinishes[task.id] - getTaskDuration(task);
+      : toScheduleDay(finish, excludeWeekends);
+    latestStarts[task.id] = latestFinishes[task.id] - getTaskDuration(task, excludeWeekends);
   }
   const slack = {};
   for (const id of relevantTaskIds) {
-    slack[id] = latestStarts[id] - earliestStarts[id];
+    slack[id] = latestStarts[id] - toScheduleDay(earliestStarts[id], excludeWeekends);
+  }
+  const criticalDependencies = new Set();
+  for (const task of taskOrder) {
+    for (const predecessorId of task.deps) {
+      if (
+        slack[task.id] === 0 &&
+        slack[predecessorId] === 0 &&
+        toScheduleDay(earliestStarts[task.id], excludeWeekends) ===
+          toScheduleDay(earliestFinishes[predecessorId], excludeWeekends) + (task.lag || 0)
+      ) {
+        criticalDependencies.add(JSON.stringify([predecessorId, task.id]));
+      }
+    }
   }
   return {
     order: taskOrder,
@@ -134,6 +208,7 @@ function analyzeSchedule(tasks, target = 'all') {
     slack,
     relevant: relevantTaskIds,
     finish,
+    criticalDependencies,
   };
 }
 // 担当を外した名前も履歴として残し、同じプロジェクトで再利用する。
@@ -168,6 +243,9 @@ function validateProject(project) {
   }
   if (project.tasks.length > 500) {
     throw Error('タスクは500件までです');
+  }
+  if (project.excludeWeekends !== undefined && typeof project.excludeWeekends !== 'boolean') {
+    throw Error('土日を除く設定が不正です');
   }
   const ids = new Set();
   for (const task of project.tasks) {
@@ -242,7 +320,7 @@ function validateProject(project) {
   ) {
     throw Error('計画範囲は10年以内にしてください');
   }
-  analyzeSchedule(project.tasks);
+  analyzeSchedule(project.tasks, 'all', project.excludeWeekends);
   if (project.baseline) {
     if (
       typeof project.baseline !== 'object' ||
@@ -334,6 +412,8 @@ if (typeof module !== 'undefined') {
     sample: createSampleProject,
     rememberOwners: rememberProjectOwners,
     dependencyPoints: getDependencyPoints,
+    progressDay: getProgressDay,
+    taskFinish: getTaskFinish,
   };
 }
 // ブラウザ内の状態と操作。Node.jsのテストでは初期化しない。
@@ -381,7 +461,7 @@ function initializeApp() {
     const target = renderProjectFields();
     let analysis;
     try {
-      analysis = analyzeSchedule(project.tasks, target);
+      analysis = analyzeSchedule(project.tasks, target, project.excludeWeekends);
     } catch (error) {
       toast(error.message);
       return;
@@ -401,7 +481,7 @@ function initializeApp() {
         ${rows}
       </div>
       <div class="overlaywrap" style="left:${layout.leftWidth}px;top:72px;width:${layout.chartWidth}px;height:${layout.chartHeight}px">
-        ${renderChartOverlay(layout)}
+        ${renderChartOverlay(layout, analysis)}
       </div>`;
     $('chart').innerHTML = chart;
     $('chart')
@@ -420,6 +500,10 @@ function initializeApp() {
       .join('');
     $('projectName').value = project.name;
     $('statusDate').value = project.statusDate || getTodayDate();
+    $('excludeWeekends').checked = !!project.excludeWeekends;
+    $('calendarSummary').textContent = project.excludeWeekends
+      ? '平日で計算（土日を除く・祝日は含む）'
+      : '暦日で計算';
 
     const target = project.tasks.some((task) => task.id === project.target)
       ? project.target
@@ -536,8 +620,12 @@ function initializeApp() {
     const slack = analysis.slack[task.id];
     const isCritical = slack === 0 && viewOptions.critical;
     const hasDependencyConflict = analysis.es[task.id] > toDayNumber(task.start);
+    const isWeekendStart =
+      project.excludeWeekends &&
+      !task.milestone &&
+      fromScheduleDay(toScheduleDay(toDayNumber(task.start), true), true) > toDayNumber(task.start);
     const warning = hasDependencyConflict
-      ? '<small class="warning">先行タスクと日程不整合</small>'
+      ? `<small class="warning">${isWeekendStart ? '開始日を平日へ調整してください' : '先行タスクと日程不整合'}</small>`
       : '';
     const startLabel = task.start.slice(5).replace('-', '/');
     const endLabel = task.end.slice(5).replace('-', '/');
@@ -576,7 +664,14 @@ function initializeApp() {
   function renderPlannedBar(task, isCritical, layout) {
     const width = Math.max(8, getTaskDuration(task) * layout.pixelsPerDay);
     const left = layout.dateToX(toDayNumber(task.start));
-    const progress = task.milestone ? '' : `<i style="width:${task.progress}%"></i>`;
+    const progressWidth =
+      task.progress === 0
+        ? 0
+        : ((getProgressDay(task, task.progress, project.excludeWeekends) -
+            toDayNumber(task.start)) /
+            Math.max(1, getTaskDuration(task))) *
+          100;
+    const progress = task.milestone ? '' : `<i style="width:${progressWidth}%"></i>`;
     return `
       <button
         class="bar ${task.milestone ? 'milestone' : ''} ${isCritical ? 'critical' : ''}"
@@ -600,7 +695,7 @@ function initializeApp() {
     return `<div class="actual" style="left:${left}px;width:${width}px" title="実績 ${task.actualStart}〜${task.actualEnd || '基準日まで（未完了）'}"></div>`;
   }
 
-  function renderDependencyPaths(layout) {
+  function renderDependencyPaths(layout, analysis) {
     if (!viewOptions.deps) {
       return '';
     }
@@ -621,7 +716,10 @@ function initializeApp() {
         const path = route
           .map(([positionX, positionY], index) => `${index ? 'L' : 'M'}${positionX},${positionY}`)
           .join(' ');
-        paths += `<path d="${path}" class="dependency" marker-end="url(#arrow)"/>`;
+        const isCritical =
+          viewOptions.critical &&
+          analysis.criticalDependencies.has(JSON.stringify([predecessorId, task.id]));
+        paths += `<path d="${path}" class="dependency${isCritical ? ' critical' : ''}" marker-end="url(#${isCritical ? 'criticalArrow' : 'arrow'})"/>`;
       });
     });
     return paths;
@@ -636,10 +734,7 @@ function initializeApp() {
       const baseline = project.baseline?.tasks[task.id] || task;
       let progressDay = layout.statusDay;
       if (task.progress < 100 && layout.statusDay >= toDayNumber(baseline.start)) {
-        progressDay = baseline.milestone
-          ? toDayNumber(baseline.start)
-          : toDayNumber(baseline.start) +
-            ((toDayNumber(baseline.end) - toDayNumber(baseline.start) + 1) * task.progress) / 100;
+        progressDay = getProgressDay(baseline, task.progress, project.excludeWeekends);
       }
       return `${layout.dateToX(progressDay)},${rowIndex * layout.rowHeight + 26}`;
     });
@@ -647,7 +742,7 @@ function initializeApp() {
     return `<polyline points="${statusX},0 ${points.join(' ')} ${statusX},${layout.chartHeight}" class="lightning"/>`;
   }
 
-  function renderChartOverlay(layout) {
+  function renderChartOverlay(layout, analysis) {
     const { chartWidth, chartHeight, dateToX, statusDay } = layout;
     const statusX = dateToX(statusDay);
     const statusLine =
@@ -660,8 +755,11 @@ function initializeApp() {
           <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
             <path d="M0 0 L10 5 L0 10" fill="#8c9bac"/>
           </marker>
+          <marker id="criticalArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M0 0 L10 5 L0 10" fill="#be5c53"/>
+          </marker>
         </defs>
-        ${renderDependencyPaths(layout)}
+        ${renderDependencyPaths(layout, analysis)}
         ${statusLine}
         ${renderProgressLine(layout)}
       </svg>`;
@@ -821,7 +919,7 @@ function initializeApp() {
   }
 
   function reschedulePendingTasks() {
-    const analysis = analyzeSchedule(project.tasks);
+    const analysis = analyzeSchedule(project.tasks, 'all', project.excludeWeekends);
     const changed = project.tasks.filter(
       (task) =>
         analysis.es[task.id] > toDayNumber(task.start) && task.progress === 0 && !task.actualStart,
@@ -838,12 +936,25 @@ function initializeApp() {
       return;
     }
     for (const task of changed) {
-      const taskDuration = getTaskDuration(task);
       task.start = toDateString(analysis.es[task.id]);
-      task.end = toDateString(analysis.es[task.id] + Math.max(0, taskDuration - 1));
+      task.end = toDateString(task.milestone ? analysis.es[task.id] : analysis.ef[task.id] - 1);
     }
     persist();
     toast('依存関係に合わせて日程を更新しました');
+  }
+
+  function changeWorkingCalendar(event) {
+    const updatedProject = structuredClone(project);
+    updatedProject.excludeWeekends = event.target.checked;
+    try {
+      validateProject(updatedProject);
+      project = updatedProject;
+      persist();
+      toast('計算方法を変更しました。日付の変更は「依存に合わせて日程調整」で行えます');
+    } catch (error) {
+      event.target.checked = !!project.excludeWeekends;
+      toast(error.message);
+    }
   }
 
   function download(name, content, type) {
@@ -988,6 +1099,7 @@ function initializeApp() {
       project.target = event.target.value;
       persist();
     };
+    $('excludeWeekends').onchange = changeWorkingCalendar;
     $('scale').onchange = (event) => {
       viewOptions.scale = Number(event.target.value);
       render();
