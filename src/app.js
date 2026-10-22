@@ -1,70 +1,1022 @@
 'use strict';
-const DAY=86400000, day=s=>Math.round(Date.parse(s+'T00:00:00Z')/DAY), date=n=>new Date(n*DAY).toISOString().slice(0,10), today=()=>{let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}, esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const duration=t=>t.milestone?0:day(t.end)-day(t.start)+1;
-function analyze(tasks,target='all'){
- const map=new Map(tasks.map(t=>[t.id,t])),order=[],seen=new Set(),active=new Set();
- function visit(t){if(active.has(t.id))throw Error('依存関係が循環しています：'+t.name);if(seen.has(t.id))return;active.add(t.id);for(const p of t.deps){if(!map.has(p))throw Error('存在しない先行ID：'+p);visit(map.get(p));}active.delete(t.id);seen.add(t.id);order.push(t);}
- tasks.forEach(visit);
- const es={},ef={},ls={},lf={},relevant=new Set();
- function collect(id){if(relevant.has(id))return;relevant.add(id);map.get(id).deps.forEach(collect);}
- if(target!=='all'&&map.has(target))collect(target);else tasks.forEach(t=>relevant.add(t.id));
- for(const t of order){es[t.id]=Math.max(day(t.start),...t.deps.map(p=>ef[p]+(t.lag||0)));ef[t.id]=es[t.id]+duration(t);}
- const finish=relevant.size?Math.max(...[...relevant].map(id=>ef[id])):day(today());
- for(const t of [...order].reverse()){if(!relevant.has(t.id))continue;const next=tasks.filter(x=>relevant.has(x.id)&&x.deps.includes(t.id));lf[t.id]=next.length?Math.min(...next.map(x=>ls[x.id]-(x.lag||0))):finish;ls[t.id]=lf[t.id]-duration(t);}
- const slack={};for(const id of relevant)slack[id]=ls[id]-es[id];return {order,es,ef,slack,relevant,finish};
+
+// 日付と表示に共通する処理。
+const MILLISECONDS_PER_DAY = 86_400_000;
+
+// タイムゾーンによる日付のずれを避けるため、計算にはUTCの日数を使う。
+function toDayNumber(dateString) {
+  return Math.round(Date.parse(dateString + 'T00:00:00Z') / MILLISECONDS_PER_DAY);
 }
-function rememberOwners(p){
- p.owners=[...new Set([...(p.owners||[]),...p.tasks.map(t=>t.owner)].filter(n=>typeof n==='string').map(n=>n.trim()).filter(Boolean))];
- return p;
+
+function toDateString(dayNumber) {
+  return new Date(dayNumber * MILLISECONDS_PER_DAY).toISOString().slice(0, 10);
 }
-function validate(p){
- if(!p||p.version!==1||typeof p.name!=='string'||!Array.isArray(p.tasks))throw Error('このツールのJSONファイルを選んでください');
- if(p.owners!==undefined&&(!Array.isArray(p.owners)||p.owners.length>5000||!p.owners.every(n=>typeof n==='string'&&n.length<=100)))throw Error('担当者リストが不正です');
- if(p.tasks.length>500)throw Error('タスクは500件までです');
- const ids=new Set();for(const t of p.tasks){if(typeof t.id!=='string'||!t.id.trim()||ids.has(t.id))throw Error('タスクIDは重複しない文字列にしてください');ids.add(t.id);if(typeof t.name!=='string'||!t.name.trim())throw Error('タスク名が必要です');for(const k of ['start','end'])if(!/^\d{4}-\d{2}-\d{2}$/.test(t[k])||!Number.isFinite(day(t[k]))||date(day(t[k]))!==t[k])throw Error('日付を確認してください');if(day(t.end)<day(t.start))throw Error('終了日は開始日以降にしてください');if(t.milestone&&t.start!==t.end)throw Error('マイルストーンは開始日と終了日を同じにしてください');if(!Array.isArray(t.deps)||!t.deps.every(x=>typeof x==='string')||new Set(t.deps).size!==t.deps.length)throw Error('先行IDを確認してください');if(!Number.isFinite(t.progress)||t.progress<0||t.progress>100)throw Error('進捗は0〜100%です');if(!Number.isInteger(t.lag)||t.lag<0||t.lag>365)throw Error('待ち日数は0〜365日です');for(const k of ['actualStart','actualEnd'])if(t[k]&&(!/^\d{4}-\d{2}-\d{2}$/.test(t[k])||!Number.isFinite(day(t[k]))||date(day(t[k]))!==t[k]))throw Error('実績日を確認してください');if(t.actualEnd&&!t.actualStart)throw Error('実績終了日には実績開始日も必要です');if(t.actualEnd&&t.actualEnd<t.actualStart)throw Error('実績終了日は実績開始日以降です');if(t.actualEnd&&t.progress!==100)throw Error('実績終了日を入れる場合は進捗を100%にしてください');}
- if(p.statusDate&&(!/^\d{4}-\d{2}-\d{2}$/.test(p.statusDate)||!Number.isFinite(day(p.statusDate))||date(day(p.statusDate))!==p.statusDate))throw Error('基準日が不正です');if(p.tasks.length&&Math.max(...p.tasks.map(t=>day(t.end)))-Math.min(...p.tasks.map(t=>day(t.start)))>3660)throw Error('計画範囲は10年以内にしてください');analyze(p.tasks);if(p.baseline){if(typeof p.baseline!=='object'||!p.baseline.tasks||Array.isArray(p.baseline.tasks))throw Error('基準計画が不正です');for(const b of Object.values(p.baseline.tasks)){if(!b||!Number.isFinite(day(b.start))||!Number.isFinite(day(b.end))||day(b.end)<day(b.start))throw Error('基準計画の日付が不正です');}}return rememberOwners(p);
+
+// 「今日」の表示は利用者のローカル日付に合わせる。
+function getTodayDate() {
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const day = String(currentDate.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
-function sample(){const rows=[['T01','実行委員会キックオフ・全体方針策定','2026-11-01','2026-11-15','担当A',[],100],['T02','開催要項・予算案策定','2026-11-16','2026-12-15','担当B',['T01'],60],['T03','会場選定・設備確認・仮予約','2026-12-01','2026-12-28','担当C',['T01'],30],['T04','特別講演講師・来賓への登壇依頼','2027-01-05','2027-01-31','担当D',['T02','T03'],0],['T05','案内状送付・参加受付開始','2027-02-01','2027-02-28','担当E',['T04'],0],['T06','記念品・ノベルティの手配','2027-02-15','2027-03-15','担当F',['T02'],0],['T07','参加者名簿確定・参加費集計','2027-03-16','2027-04-10','担当G',['T05'],0],['T08','当日配布資料・パンフレット印刷','2027-04-01','2027-04-25','担当H',['T04'],0],['T09','進行台本策定・司会リハーサル','2027-04-26','2027-05-10','担当I',['T08'],0],['T10','合格祝賀CPD 開催','2027-05-16','2027-05-16','全員',['T06','T07','T09'],0],['T11','終了報告・アンケート集計','2027-05-17','2027-05-31','担当A',['T10'],0]];const tasks=rows.map(r=>({id:r[0],name:r[1],start:r[2],end:r[3],owner:r[4],deps:r[5],progress:r[6],lag:0,milestone:r[0]==='T10',actualStart:r[0]==='T01'?'2026-11-01':r[0]==='T02'?'2026-11-18':r[0]==='T03'?'2026-12-03':'',actualEnd:r[0]==='T01'?'2026-11-15':'',note:''}));return {version:1,name:'講演会準備（サンプル）',tasks,owners:[...new Set(tasks.map(t=>t.owner))],baseline:{savedAt:'2026-11-01',tasks:Object.fromEntries(tasks.map(t=>[t.id,{start:t.start,end:t.end,milestone:t.milestone}]))},target:'T10',statusDate:'2026-12-10'};}
-if(typeof module!=='undefined')module.exports={day,date,duration,analyze,validate,sample,rememberOwners};
-if(typeof document!=='undefined'){
- const $=id=>document.getElementById(id), KEY='komorebi-gantt-v1';let p,dirty=false,editing=null,fileHandle=null;let view={scale:0,baseline:true,actual:true,lightning:true,deps:true,critical:true};
- try{p=validate(JSON.parse(localStorage.getItem(KEY)));}catch{p=sample();}
- function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').classList.remove('show'),4500);}
- function persist(){rememberOwners(p);dirty=true;try{localStorage.setItem(KEY,JSON.stringify(p));$('saveState').textContent='端末に自動保存済み · JSON保存で共有';}catch{$('saveState').textContent='端末保存できません · JSONを保存してください';}render();}
- function render(){
- rememberOwners(p);$('ownerCandidates').innerHTML=p.owners.map(n=>`<option value="${esc(n)}"></option>`).join('');
- $('projectName').value=p.name;$('statusDate').value=p.statusDate||today();const target=p.tasks.some(t=>t.id===p.target)?p.target:'all';p.target=target;let a;try{a=analyze(p.tasks,target);}catch(e){toast(e.message);return;}
- $('target').innerHTML='<option value="all">プロジェクト全体</option>'+p.tasks.map(t=>`<option value="${esc(t.id)}">${esc(t.id+' '+t.name)}</option>`).join('');$('target').value=target;
- const incomplete=p.tasks.filter(t=>t.progress<100),late=incomplete.filter(t=>day(t.end)<day($('statusDate').value)),critical=p.tasks.filter(t=>a.slack[t.id]===0);
- $('count').textContent=p.tasks.length;$('done').textContent=p.tasks.filter(t=>t.progress===100).length;$('late').textContent=late.length;$('criticalCount').textContent=critical.filter(t=>t.progress<100).length;
- $('baselineLabel').textContent=p.baseline?'基準計画：'+p.baseline.savedAt:'基準計画：未保存';
- if(!p.tasks.length){$('chart').innerHTML='<div class="empty">タスクを追加して計画を始めましょう。</div>';return;}
- const ref=day($('statusDate').value),allDays=p.tasks.flatMap(t=>[day(t.start),day(t.end),t.actualStart?day(t.actualStart):day(t.start),t.actualEnd?day(t.actualEnd):day(t.end)]);if(p.baseline)Object.values(p.baseline.tasks).forEach(b=>allDays.push(day(b.start),day(b.end)));
- let min=Math.min(...allDays)-7,max=Math.max(...allDays)+14;if(ref>=min-90&&ref<=max+90){min=Math.min(min,ref-3);max=Math.max(max,ref+7);}const leftWidth=720,rowHeight=64,days=max-min+1;const scale=view.scale||Math.max(620,$('scroll').clientWidth-leftWidth)/days,W=days*scale,H=p.tasks.length*rowHeight;const x=n=>(n-min)*scale;
- let ticks='',months='',last='',lastTick=-Infinity;for(let d=min;d<=max;d++){const dt=new Date(d*DAY),m=date(d).slice(0,7);if(m!==last){if(d!==min||new Date(d*DAY).getUTCDate()<10)months+=`<span style="left:${x(d)}px">${dt.getUTCFullYear()}/${String(dt.getUTCMonth()+1).padStart(2,'0')}</span>`;last=m;}if(((scale>=18)||(scale>=7&&dt.getUTCDay()===1)||(scale<7&&[1,16].includes(dt.getUTCDate())))&&x(d)-lastTick>=52){lastTick=x(d);ticks+=`<span style="left:${x(d)}px">${dt.getUTCMonth()+1}/${dt.getUTCDate()}</span>`;}}
- let html=`<div class="grid" style="width:${leftWidth+W}px"><div class="head left"><span>タスク / 担当者</span><span>計画期間</span><span>進捗</span><span>余裕</span></div><div class="head timeline" style="width:${W}px"><div class="months">${months}</div><div class="ticks">${ticks}</div></div>`;
- p.tasks.forEach((t,i)=>{const iscrit=a.slack[t.id]===0,slack=a.slack[t.id],b=p.baseline?.tasks[t.id],warn=a.es[t.id]>day(t.start);html+=`<button class="task left ${iscrit&&view.critical?'iscritical':''}" data-id="${esc(t.id)}"><span class="tasktext"><small>${esc(t.id)} ${t.milestone?'◆':''} · ${esc(t.owner||'担当未設定')}</small><strong>${esc(t.name)}</strong></span><span class="period">${esc(t.start.slice(5))} → ${esc(t.end.slice(5))}${warn?'<small class="warning">先行タスクと日程不整合</small>':''}</span><span class="pct">${t.progress}%</span><span class="slack">${slack===undefined?'—':slack+'日'}</span></button><div class="lane" style="width:${W}px">`;
- if(view.baseline&&b)html+=`<div class="base" style="left:${x(day(b.start))}px;width:${Math.max(4,(b.milestone?0:day(b.end)-day(b.start)+1)*scale)}px" title="基準計画 ${b.start}〜${b.end}"></div>`;
- const width=Math.max(8,duration(t)*scale);html+=`<button class="bar ${t.milestone?'milestone':''} ${iscrit&&view.critical?'critical':''}" data-id="${esc(t.id)}" style="left:${x(day(t.start))}px;width:${width}px" title="${esc(t.name)}：${t.start}〜${t.end}">${!t.milestone?`<i style="width:${t.progress}%"></i>`:''}</button>`;
- if(view.actual&&t.actualStart){const end=t.actualEnd?day(t.actualEnd):Math.max(day(t.actualStart),ref);html+=`<div class="actual" style="left:${x(day(t.actualStart))}px;width:${Math.max(4,(end-day(t.actualStart)+1)*scale)}px" title="実績 ${t.actualStart}〜${t.actualEnd||'基準日まで（未完了）'}"></div>`;}
- html+='</div>';});
- html+='</div>';let paths='',points=[];p.tasks.forEach((t,i)=>{const cy=i*rowHeight+26;if(view.deps)t.deps.forEach(id=>{const j=p.tasks.findIndex(z=>z.id===id),s=p.tasks[j];const from=x(day(s.start)+duration(s)),to=x(day(t.start));paths+=`<path d="M${from},${j*rowHeight+26} H${from+9} V${cy} H${to}" class="dependency" marker-end="url(#arrow)"/>`;});if(view.lightning){const b=p.baseline?.tasks[t.id]||t;let point=ref;if(t.progress<100&&ref>=day(b.start)){point=b.milestone?(t.progress===100?ref:day(b.start)):day(b.start)+(day(b.end)-day(b.start)+1)*t.progress/100; }points.push(`${x(point)},${cy}`);}});
- const svg=`<svg class="overlay" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#8c9bac"/></marker></defs>${paths}${x(ref)>=0&&x(ref)<=W?`<path d="M${x(ref)},0 V${H}" class="todayline"/>`:''}${view.lightning?`<polyline points="${x(ref)},0 ${points.join(' ')} ${x(ref)},${H}" class="lightning"/>`:''}</svg>`;
- $('chart').innerHTML=html+`<div class="overlaywrap" style="left:${leftWidth}px;top:72px;width:${W}px;height:${H}px">${svg}</div>`;
- $('chart').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>openTask(b.dataset.id));
- $('note').textContent=`目標までの余裕：現在の開始日を「これより前に着手しない日」として計算。灰色の余裕「—」は選択目標の対象外。${p.baseline?'イナズマ線は基準計画':'イナズマ線は現在計画'}と進捗率から算出。`;
- }
- function openTask(id=null){editing=id;const t=p.tasks.find(t=>t.id===id)||{id:'T'+String(Math.max(0,...p.tasks.map(t=>Number(t.id.replace(/^T/,''))||0))+1).padStart(2,'0'),name:'',owner:'',start:p.statusDate||today(),end:p.statusDate||today(),progress:0,deps:[],lag:0,milestone:false,actualStart:'',actualEnd:'',note:''};$('taskForm').reset();for(const key of ['id','name','owner','start','end','progress','lag','actualStart','actualEnd','note'])$('f_'+key).value=t[key]??'';$('f_milestone').checked=!!t.milestone;$('f_deps').innerHTML=p.tasks.filter(x=>x.id!==id).map(x=>`<label class="depoption"><input type="checkbox" value="${esc(x.id)}" ${t.deps.includes(x.id)?'checked':''}><span>${esc(x.id+' '+x.name)}</span></label>`).join('')||'<span class="muted">先行タスクはありません</span>';$('deleteTask').hidden=!id;$('dialogTitle').textContent=id?'タスクを編集':'タスクを追加';$('formError').textContent='';$('dialog').showModal();}
- $('taskForm').onsubmit=e=>{e.preventDefault();try{const t={};for(const key of ['id','name','owner','start','end','actualStart','actualEnd','note'])t[key]=$('f_'+key).value.trim();t.progress=Number($('f_progress').value);t.lag=Number($('f_lag').value);t.milestone=$('f_milestone').checked;if(t.milestone)t.end=t.start;t.deps=[...$('f_deps').querySelectorAll('input:checked')].map(x=>x.value);const next=structuredClone(p);if(editing){next.tasks=next.tasks.map(x=>x.id===editing?t:x);if(t.id!==editing){next.tasks.forEach(x=>x.deps=x.deps.map(d=>d===editing?t.id:d));if(next.target===editing)next.target=t.id;if(next.baseline?.tasks[editing]){next.baseline.tasks[t.id]=next.baseline.tasks[editing];delete next.baseline.tasks[editing];}}}else next.tasks.push(t);validate(next);p=next;persist();$('dialog').close();}catch(err){$('formError').textContent=err.message;}};
- $('deleteTask').onclick=()=>{const t=p.tasks.find(t=>t.id===editing),next=p.tasks.filter(t=>t.deps.includes(editing));if(!confirm(`「${t.name}」を削除しますか？${next.length?' 後続タスクの依存関係からも外れます。':''}`))return;p.tasks=p.tasks.filter(t=>t.id!==editing);p.tasks.forEach(t=>t.deps=t.deps.filter(id=>id!==editing));persist();$('dialog').close();};
- $('expandChart').onclick=()=>{const expanded=document.body.classList.toggle('chartfocus');$('expandChart').textContent=expanded?'通常表示に戻す':'チャートを広く';requestAnimationFrame(render);};window.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('chartfocus')&&!$('dialog').open&&!$('helpDialog').open){document.body.classList.remove('chartfocus');$('expandChart').textContent='チャートを広く';render();}});let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(render,100);});
- $('closeDialog').onclick=()=>$('dialog').close();$('addTask').onclick=()=>openTask();$('projectName').onchange=e=>{p.name=e.target.value.trim()||'新しいプロジェクト';persist();};$('statusDate').onchange=e=>{if(e.target.value){p.statusDate=e.target.value;persist();}};$('target').onchange=e=>{p.target=e.target.value;persist();};$('scale').onchange=e=>{view.scale=Number(e.target.value);render();};for(const k of ['baseline','actual','lightning','deps','critical'])$('v_'+k).onchange=e=>{view[k]=e.target.checked;render();};
- $('saveBaseline').onclick=()=>{if(p.baseline&&!confirm('現在の基準計画を置き換えます。古い基準計画を残す場合は、先にJSON保存してください。置き換えますか？'))return;p.baseline={savedAt:today(),tasks:Object.fromEntries(p.tasks.map(t=>[t.id,{start:t.start,end:t.end,milestone:t.milestone}]))};persist();toast('現在の計画を基準計画として保存しました');};
- $('schedule').onclick=()=>{const a=analyze(p.tasks);const changed=p.tasks.filter(t=>a.es[t.id]>day(t.start)&&t.progress===0&&!t.actualStart);if(!changed.length){toast('後ろに移動する未着手タスクはありません');return;}if(!confirm(`${changed.length}件の未着手タスクを、先行タスクの完了後へ移動します。着手済みのタスクは動かしません。実行しますか？`))return;for(const t of changed){const n=duration(t);t.start=date(a.es[t.id]);t.end=date(a.es[t.id]+Math.max(0,n-1));}persist();toast('依存関係に合わせて日程を更新しました');};
- function download(name,content,type){const url=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
- $('saveFile').onclick=async()=>{try{const text=JSON.stringify(p,null,2);if(fileHandle){const w=await fileHandle.createWritable();await w.write(text);await w.close();toast('開いたJSONファイルへ保存しました');}else{download(p.name.replace(/[\\/:*?"<>|]/g,'_')+'.json',text,'application/json');toast('JSONを保存しました。共有フォルダに置いて使えます');}dirty=false;}catch(e){toast('保存できませんでした：'+e.message);}};
- $('openFile').onclick=async()=>{if(dirty&&!confirm('JSONファイルを開くと現在の表示を置き換えます。必要なら先にJSON保存してください。続けますか？'))return;if(window.showOpenFilePicker){try{const [h]=await showOpenFilePicker({types:[{description:'プロジェクトJSON',accept:{'application/json':['.json']}}],multiple:false});const next=validate(JSON.parse(await(await h.getFile()).text()));p=next;fileHandle=h;persist();dirty=false;toast('読み込みました。JSON保存で同じファイルに上書きできます');}catch(e){if(e.name!=='AbortError')toast('読込できませんでした：'+e.message);}}else $('fileInput').click();};
- $('fileInput').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;p=validate(JSON.parse(await f.text()));fileHandle=null;persist();dirty=false;toast('読み込みました');}catch(err){toast('読込できませんでした：'+err.message);}finally{e.target.value='';}};
- $('newProject').onclick=()=>{if(!confirm('新規プロジェクトに切り替えます。現在の内容は先にJSON保存してください。続けますか？'))return;p={version:1,name:'新しいプロジェクト',tasks:[],target:'all',statusDate:today(),baseline:null};fileHandle=null;persist();};$('loadSample').onclick=()=>{if(!confirm('講演会サンプルに切り替えます。現在の内容は先にJSON保存してください。続けますか？'))return;p=sample();fileHandle=null;persist();};$('print').onclick=()=>window.print();$('helpButton').onclick=()=>$('helpDialog').showModal();$('closeHelp').onclick=()=>$('helpDialog').close();
- window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});render();
+
+function escapeHtml(value) {
+  const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' };
+  return String(value ?? '').replace(/[&<>"']/g, (character) => entities[character]);
+}
+
+function getTaskDuration(task) {
+  return task.milestone ? 0 : toDayNumber(task.end) - toDayNumber(task.start) + 1;
+}
+
+// 矢印は後続バーの左側へ右向きに入れる。近すぎる場合は行間へ回り込む。
+function getDependencyPoints(sourceX, targetX, sourceRow, targetRow, rowHeight = 64) {
+  const sourceY = sourceRow * rowHeight + 26;
+  const targetY = targetRow * rowHeight + 26;
+  const routingGap = 14;
+  if (targetX - sourceX >= routingGap * 2) {
+    const bendX = (sourceX + targetX) / 2;
+    return [
+      [sourceX, sourceY],
+      [bendX, sourceY],
+      [bendX, targetY],
+      [targetX, targetY],
+    ];
+  }
+  const corridorY =
+    targetRow > sourceRow ? (sourceRow + 1) * rowHeight - 2 : sourceRow * rowHeight + 4;
+  return [
+    [sourceX, sourceY],
+    [sourceX + routingGap, sourceY],
+    [sourceX + routingGap, corridorY],
+    [targetX - routingGap, corridorY],
+    [targetX - routingGap, targetY],
+    [targetX, targetY],
+  ];
+}
+// 先行順で最早日、後続順で最遅日を計算し、その差を総余裕とする。
+function analyzeSchedule(tasks, target = 'all') {
+  const tasksById = new Map(tasks.map((task) => [task.id, task]));
+  const taskOrder = [];
+  const visitedTaskIds = new Set();
+  const activeTaskIds = new Set();
+  function visitTask(task) {
+    if (activeTaskIds.has(task.id)) {
+      throw Error('依存関係が循環しています：' + task.name);
+    }
+    if (visitedTaskIds.has(task.id)) {
+      return;
+    }
+    activeTaskIds.add(task.id);
+    for (const predecessorId of task.deps) {
+      if (!tasksById.has(predecessorId)) {
+        throw Error('存在しない先行ID：' + predecessorId);
+      }
+      visitTask(tasksById.get(predecessorId));
+    }
+    activeTaskIds.delete(task.id);
+    visitedTaskIds.add(task.id);
+    taskOrder.push(task);
+  }
+  // 依存関係の循環を検出しながら、先行タスクが先に来る順序を作る。
+  tasks.forEach(visitTask);
+  const earliestStarts = {};
+  const earliestFinishes = {};
+  const latestStarts = {};
+  const latestFinishes = {};
+  const relevantTaskIds = new Set();
+  function collectPredecessors(id) {
+    if (relevantTaskIds.has(id)) {
+      return;
+    }
+    relevantTaskIds.add(id);
+    tasksById.get(id).deps.forEach(collectPredecessors);
+  }
+  if (target !== 'all' && tasksById.has(target)) {
+    collectPredecessors(target);
+  } else {
+    tasks.forEach((task) => relevantTaskIds.add(task.id));
+  }
+  // 通常タスクの終了は、終了日の翌日を表す排他的な境界。
+  for (const task of taskOrder) {
+    earliestStarts[task.id] = Math.max(
+      toDayNumber(task.start),
+      ...task.deps.map((predecessorId) => earliestFinishes[predecessorId] + (task.lag || 0)),
+    );
+    earliestFinishes[task.id] = earliestStarts[task.id] + getTaskDuration(task);
+  }
+  const finish = relevantTaskIds.size
+    ? Math.max(...[...relevantTaskIds].map((id) => earliestFinishes[id]))
+    : toDayNumber(getTodayDate());
+  for (const task of [...taskOrder].reverse()) {
+    if (!relevantTaskIds.has(task.id)) {
+      continue;
+    }
+    const successors = tasks.filter(
+      (successor) => relevantTaskIds.has(successor.id) && successor.deps.includes(task.id),
+    );
+    latestFinishes[task.id] = successors.length
+      ? Math.min(
+          ...successors.map((successor) => latestStarts[successor.id] - (successor.lag || 0)),
+        )
+      : finish;
+    latestStarts[task.id] = latestFinishes[task.id] - getTaskDuration(task);
+  }
+  const slack = {};
+  for (const id of relevantTaskIds) {
+    slack[id] = latestStarts[id] - earliestStarts[id];
+  }
+  return {
+    order: taskOrder,
+    es: earliestStarts,
+    ef: earliestFinishes,
+    slack,
+    relevant: relevantTaskIds,
+    finish,
+  };
+}
+// 担当を外した名前も履歴として残し、同じプロジェクトで再利用する。
+function rememberProjectOwners(project) {
+  project.owners = [
+    ...new Set(
+      [...(project.owners || []), ...project.tasks.map((task) => task.owner)]
+        .filter((name) => typeof name === 'string')
+        .map((name) => name.trim())
+        .filter(Boolean),
+    ),
+  ];
+  return project;
+}
+// 旧形式も読み込めるよう、検証後に担当者候補を補完する。
+function validateProject(project) {
+  if (
+    !project ||
+    project.version !== 1 ||
+    typeof project.name !== 'string' ||
+    !Array.isArray(project.tasks)
+  ) {
+    throw Error('このツールのJSONファイルを選んでください');
+  }
+  if (
+    project.owners !== undefined &&
+    (!Array.isArray(project.owners) ||
+      project.owners.length > 5000 ||
+      !project.owners.every((n) => typeof n === 'string' && n.length <= 100))
+  ) {
+    throw Error('担当者リストが不正です');
+  }
+  if (project.tasks.length > 500) {
+    throw Error('タスクは500件までです');
+  }
+  const ids = new Set();
+  for (const task of project.tasks) {
+    if (typeof task.id !== 'string' || !task.id.trim() || ids.has(task.id)) {
+      throw Error('タスクIDは重複しない文字列にしてください');
+    }
+    ids.add(task.id);
+    if (typeof task.name !== 'string' || !task.name.trim()) {
+      throw Error('タスク名が必要です');
+    }
+    for (const fieldName of ['start', 'end']) {
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(task[fieldName]) ||
+        !Number.isFinite(toDayNumber(task[fieldName])) ||
+        toDateString(toDayNumber(task[fieldName])) !== task[fieldName]
+      ) {
+        throw Error('日付を確認してください');
+      }
+    }
+    if (toDayNumber(task.end) < toDayNumber(task.start)) {
+      throw Error('終了日は開始日以降にしてください');
+    }
+    if (task.milestone && task.start !== task.end) {
+      throw Error('マイルストーンは開始日と終了日を同じにしてください');
+    }
+    if (
+      !Array.isArray(task.deps) ||
+      !task.deps.every((x) => typeof x === 'string') ||
+      new Set(task.deps).size !== task.deps.length
+    ) {
+      throw Error('先行IDを確認してください');
+    }
+    if (!Number.isFinite(task.progress) || task.progress < 0 || task.progress > 100) {
+      throw Error('進捗は0〜100%です');
+    }
+    if (!Number.isInteger(task.lag) || task.lag < 0 || task.lag > 365) {
+      throw Error('待ち日数は0〜365日です');
+    }
+    for (const fieldName of ['actualStart', 'actualEnd']) {
+      if (
+        task[fieldName] &&
+        (!/^\d{4}-\d{2}-\d{2}$/.test(task[fieldName]) ||
+          !Number.isFinite(toDayNumber(task[fieldName])) ||
+          toDateString(toDayNumber(task[fieldName])) !== task[fieldName])
+      ) {
+        throw Error('実績日を確認してください');
+      }
+    }
+    if (task.actualEnd && !task.actualStart) {
+      throw Error('実績終了日には実績開始日も必要です');
+    }
+    if (task.actualEnd && task.actualEnd < task.actualStart) {
+      throw Error('実績終了日は実績開始日以降です');
+    }
+    if (task.actualEnd && task.progress !== 100) {
+      throw Error('実績終了日を入れる場合は進捗を100%にしてください');
+    }
+  }
+  if (
+    project.statusDate &&
+    (!/^\d{4}-\d{2}-\d{2}$/.test(project.statusDate) ||
+      !Number.isFinite(toDayNumber(project.statusDate)) ||
+      toDateString(toDayNumber(project.statusDate)) !== project.statusDate)
+  ) {
+    throw Error('基準日が不正です');
+  }
+  if (
+    project.tasks.length &&
+    Math.max(...project.tasks.map((task) => toDayNumber(task.end))) -
+      Math.min(...project.tasks.map((task) => toDayNumber(task.start))) >
+      3660
+  ) {
+    throw Error('計画範囲は10年以内にしてください');
+  }
+  analyzeSchedule(project.tasks);
+  if (project.baseline) {
+    if (
+      typeof project.baseline !== 'object' ||
+      !project.baseline.tasks ||
+      Array.isArray(project.baseline.tasks)
+    ) {
+      throw Error('基準計画が不正です');
+    }
+    for (const baseline of Object.values(project.baseline.tasks)) {
+      if (
+        !baseline ||
+        !Number.isFinite(toDayNumber(baseline.start)) ||
+        !Number.isFinite(toDayNumber(baseline.end)) ||
+        toDayNumber(baseline.end) < toDayNumber(baseline.start)
+      ) {
+        throw Error('基準計画の日付が不正です');
+      }
+    }
+  }
+  return rememberProjectOwners(project);
+}
+// 外部ファイルは読まず、ここから講演会サンプルを生成する。
+function createSampleProject() {
+  const rows = [
+    ['T01', '実行委員会キックオフ・全体方針策定', '2026-11-01', '2026-11-15', '担当A', [], 100],
+    ['T02', '開催要項・予算案策定', '2026-11-16', '2026-12-15', '担当B', ['T01'], 60],
+    ['T03', '会場選定・設備確認・仮予約', '2026-12-01', '2026-12-28', '担当C', ['T01'], 30],
+    [
+      'T04',
+      '特別講演講師・来賓への登壇依頼',
+      '2027-01-05',
+      '2027-01-31',
+      '担当D',
+      ['T02', 'T03'],
+      0,
+    ],
+    ['T05', '案内状送付・参加受付開始', '2027-02-01', '2027-02-28', '担当E', ['T04'], 0],
+    ['T06', '記念品・ノベルティの手配', '2027-02-15', '2027-03-15', '担当F', ['T02'], 0],
+    ['T07', '参加者名簿確定・参加費集計', '2027-03-16', '2027-04-10', '担当G', ['T05'], 0],
+    ['T08', '当日配布資料・パンフレット印刷', '2027-04-01', '2027-04-25', '担当H', ['T04'], 0],
+    ['T09', '進行台本策定・司会リハーサル', '2027-04-26', '2027-05-10', '担当I', ['T08'], 0],
+    ['T10', '合格祝賀CPD 開催', '2027-05-16', '2027-05-16', '全員', ['T06', 'T07', 'T09'], 0],
+    ['T11', '終了報告・アンケート集計', '2027-05-17', '2027-05-31', '担当A', ['T10'], 0],
+  ];
+  const actualStarts = {
+    T01: '2026-11-01',
+    T02: '2026-11-18',
+    T03: '2026-12-03',
+  };
+  const tasks = rows.map(([id, name, start, end, owner, deps, progress]) => ({
+    id,
+    name,
+    start,
+    end,
+    owner,
+    deps,
+    progress,
+    lag: 0,
+    milestone: id === 'T10',
+    actualStart: actualStarts[id] || '',
+    actualEnd: id === 'T01' ? '2026-11-15' : '',
+    note: '',
+  }));
+  return {
+    version: 1,
+    name: '講演会準備（サンプル）',
+    tasks,
+    owners: [...new Set(tasks.map((task) => task.owner))],
+    baseline: {
+      savedAt: '2026-11-01',
+      tasks: Object.fromEntries(
+        tasks.map((task) => [
+          task.id,
+          { start: task.start, end: task.end, milestone: task.milestone },
+        ]),
+      ),
+    },
+    target: 'T10',
+    statusDate: '2026-12-10',
+  };
+}
+if (typeof module !== 'undefined') {
+  module.exports = {
+    day: toDayNumber,
+    date: toDateString,
+    duration: getTaskDuration,
+    analyze: analyzeSchedule,
+    validate: validateProject,
+    sample: createSampleProject,
+    rememberOwners: rememberProjectOwners,
+    dependencyPoints: getDependencyPoints,
+  };
+}
+// ブラウザ内の状態と操作。Node.jsのテストでは初期化しない。
+function initializeApp() {
+  const $ = (id) => document.getElementById(id);
+  const STORAGE_KEY = 'komorebi-gantt-v1';
+  let project;
+  let hasUnsavedChanges = false;
+  let editingTaskId = null;
+  let projectFileHandle = null;
+  const viewOptions = {
+    scale: 0,
+    baseline: true,
+    actual: true,
+    lightning: true,
+    deps: true,
+    critical: true,
+  };
+  try {
+    project = validateProject(JSON.parse(localStorage.getItem(STORAGE_KEY)));
+  } catch {
+    project = createSampleProject();
+  }
+
+  function toast(message) {
+    $('toast').textContent = message;
+    $('toast').classList.add('show');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => $('toast').classList.remove('show'), 4500);
+  }
+  // 自動保存はブラウザ内だけ。共有用JSONへの保存はsaveProjectFileで行う。
+  function persist() {
+    rememberProjectOwners(project);
+    hasUnsavedChanges = true;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+      $('saveState').textContent = '端末に自動保存済み · JSON保存で共有';
+    } catch {
+      $('saveState').textContent = '端末保存できません · JSONを保存してください';
+    }
+    render();
+  }
+  // 画面更新の入口。計算・集計・チャート描画を順に呼び出す。
+  function render() {
+    const target = renderProjectFields();
+    let analysis;
+    try {
+      analysis = analyzeSchedule(project.tasks, target);
+    } catch (error) {
+      toast(error.message);
+      return;
+    }
+
+    renderSummary(analysis);
+    if (!project.tasks.length) {
+      $('chart').innerHTML = '<div class="empty">タスクを追加して計画を始めましょう。</div>';
+      return;
+    }
+
+    const layout = createChartLayout();
+    const rows = project.tasks.map((task) => renderTaskRow(task, analysis, layout)).join('');
+    const chart = `
+      <div class="grid" style="width:${layout.leftWidth + layout.chartWidth}px">
+        ${renderTimelineHeader(layout)}
+        ${rows}
+      </div>
+      <div class="overlaywrap" style="left:${layout.leftWidth}px;top:72px;width:${layout.chartWidth}px;height:${layout.chartHeight}px">
+        ${renderChartOverlay(layout)}
+      </div>`;
+    $('chart').innerHTML = chart;
+    $('chart')
+      .querySelectorAll('[data-id]')
+      .forEach((button) => {
+        button.onclick = () => openTask(button.dataset.id);
+      });
+    $('note').textContent =
+      `目標までの余裕：現在の開始日を「これより前に着手しない日」として計算。灰色の余裕「—」は選択目標の対象外。${project.baseline ? 'イナズマ線は基準計画' : 'イナズマ線は現在計画'}と進捗率から算出。`;
+  }
+
+  function renderProjectFields() {
+    rememberProjectOwners(project);
+    $('ownerCandidates').innerHTML = project.owners
+      .map((name) => `<option value="${escapeHtml(name)}"></option>`)
+      .join('');
+    $('projectName').value = project.name;
+    $('statusDate').value = project.statusDate || getTodayDate();
+
+    const target = project.tasks.some((task) => task.id === project.target)
+      ? project.target
+      : 'all';
+    project.target = target;
+    $('target').innerHTML =
+      '<option value="all">プロジェクト全体</option>' +
+      project.tasks
+        .map(
+          (task) =>
+            `<option value="${escapeHtml(task.id)}">${escapeHtml(task.id + ' ' + task.name)}</option>`,
+        )
+        .join('');
+    $('target').value = target;
+    return target;
+  }
+
+  function renderSummary(analysis) {
+    const incompleteTasks = project.tasks.filter((task) => task.progress < 100);
+    const lateTasks = incompleteTasks.filter(
+      (task) => toDayNumber(task.end) < toDayNumber($('statusDate').value),
+    );
+    const criticalTasks = project.tasks.filter((task) => analysis.slack[task.id] === 0);
+
+    $('count').textContent = project.tasks.length;
+    $('done').textContent = project.tasks.filter((task) => task.progress === 100).length;
+    $('late').textContent = lateTasks.length;
+    $('criticalCount').textContent = criticalTasks.filter((task) => task.progress < 100).length;
+    $('baselineLabel').textContent = project.baseline
+      ? '基準計画：' + project.baseline.savedAt
+      : '基準計画：未保存';
+  }
+
+  // 日付はUTCの日数、描画位置はピクセル。ここで両者の対応を決める。
+  function createChartLayout() {
+    const statusDay = toDayNumber($('statusDate').value);
+    const allDays = project.tasks.flatMap((task) => [
+      toDayNumber(task.start),
+      toDayNumber(task.end),
+      task.actualStart ? toDayNumber(task.actualStart) : toDayNumber(task.start),
+      task.actualEnd ? toDayNumber(task.actualEnd) : toDayNumber(task.end),
+    ]);
+    if (project.baseline) {
+      Object.values(project.baseline.tasks).forEach((baseline) => {
+        allDays.push(toDayNumber(baseline.start), toDayNumber(baseline.end));
+      });
+    }
+
+    let firstDay = Math.min(...allDays) - 7;
+    let lastDay = Math.max(...allDays) + 14;
+    if (statusDay >= firstDay - 90 && statusDay <= lastDay + 90) {
+      firstDay = Math.min(firstDay, statusDay - 3);
+      lastDay = Math.max(lastDay, statusDay + 7);
+    }
+
+    const leftWidth = 720;
+    const rowHeight = 64;
+    const dayCount = lastDay - firstDay + 1;
+    const pixelsPerDay =
+      viewOptions.scale || Math.max(620, $('scroll').clientWidth - leftWidth) / dayCount;
+    return {
+      firstDay,
+      lastDay,
+      statusDay,
+      leftWidth,
+      rowHeight,
+      pixelsPerDay,
+      chartWidth: dayCount * pixelsPerDay,
+      chartHeight: project.tasks.length * rowHeight,
+      dateToX: (dayNumber) => (dayNumber - firstDay) * pixelsPerDay,
+    };
+  }
+
+  function renderTimelineHeader(layout) {
+    const { firstDay, lastDay, pixelsPerDay, dateToX, chartWidth } = layout;
+    let monthLabels = '';
+    let dateLabels = '';
+    let previousMonth = '';
+    let previousLabelX = -Infinity;
+
+    for (let dayNumber = firstDay; dayNumber <= lastDay; dayNumber++) {
+      const calendarDate = new Date(dayNumber * MILLISECONDS_PER_DAY);
+      const month = toDateString(dayNumber).slice(0, 7);
+      const positionX = dateToX(dayNumber);
+      if (month !== previousMonth) {
+        if (dayNumber !== firstDay || calendarDate.getUTCDate() < 10) {
+          const label = `${calendarDate.getUTCFullYear()}/${String(calendarDate.getUTCMonth() + 1).padStart(2, '0')}`;
+          monthLabels += `<span style="left:${positionX}px">${label}</span>`;
+        }
+        previousMonth = month;
+      }
+
+      const isLabelDay =
+        pixelsPerDay >= 18 ||
+        (pixelsPerDay >= 7 && calendarDate.getUTCDay() === 1) ||
+        (pixelsPerDay < 7 && [1, 16].includes(calendarDate.getUTCDate()));
+      if (isLabelDay && positionX - previousLabelX >= 52) {
+        previousLabelX = positionX;
+        dateLabels += `<span style="left:${positionX}px">${calendarDate.getUTCMonth() + 1}/${calendarDate.getUTCDate()}</span>`;
+      }
+    }
+
+    return `
+      <div class="head left">
+        <span>タスク / 担当者</span><span>計画期間</span><span>進捗</span><span>余裕</span>
+      </div>
+      <div class="head timeline" style="width:${chartWidth}px">
+        <div class="months">${monthLabels}</div>
+        <div class="ticks">${dateLabels}</div>
+      </div>`;
+  }
+
+  function renderTaskRow(task, analysis, layout) {
+    const slack = analysis.slack[task.id];
+    const isCritical = slack === 0 && viewOptions.critical;
+    const hasDependencyConflict = analysis.es[task.id] > toDayNumber(task.start);
+    const warning = hasDependencyConflict
+      ? '<small class="warning">先行タスクと日程不整合</small>'
+      : '';
+    const startLabel = task.start.slice(5).replace('-', '/');
+    const endLabel = task.end.slice(5).replace('-', '/');
+
+    return `
+      <button class="task left ${isCritical ? 'iscritical' : ''}" data-id="${escapeHtml(task.id)}">
+        <span class="tasktext">
+          <small>${escapeHtml(task.id)} ${task.milestone ? '◆' : ''} · ${escapeHtml(task.owner || '担当未設定')}</small>
+          <strong>${escapeHtml(task.name)}</strong>
+        </span>
+        <span class="period">${escapeHtml(startLabel)} → ${escapeHtml(endLabel)}${warning}</span>
+        <span class="pct">${task.progress}%</span>
+        <span class="slack">${slack === undefined ? '—' : slack + '日'}</span>
+      </button>
+      <div class="lane" style="width:${layout.chartWidth}px">
+        ${renderBaselineBar(task, layout)}
+        ${renderPlannedBar(task, isCritical, layout)}
+        ${renderActualBar(task, layout)}
+      </div>`;
+  }
+
+  function renderBaselineBar(task, layout) {
+    const baseline = project.baseline?.tasks[task.id];
+    if (!viewOptions.baseline || !baseline) {
+      return '';
+    }
+
+    const duration = baseline.milestone
+      ? 0
+      : toDayNumber(baseline.end) - toDayNumber(baseline.start) + 1;
+    const width = Math.max(4, duration * layout.pixelsPerDay);
+    const left = layout.dateToX(toDayNumber(baseline.start));
+    return `<div class="base" style="left:${left}px;width:${width}px" title="基準計画 ${baseline.start}〜${baseline.end}"></div>`;
+  }
+
+  function renderPlannedBar(task, isCritical, layout) {
+    const width = Math.max(8, getTaskDuration(task) * layout.pixelsPerDay);
+    const left = layout.dateToX(toDayNumber(task.start));
+    const progress = task.milestone ? '' : `<i style="width:${task.progress}%"></i>`;
+    return `
+      <button
+        class="bar ${task.milestone ? 'milestone' : ''} ${isCritical ? 'critical' : ''}"
+        data-id="${escapeHtml(task.id)}"
+        style="left:${left}px;width:${width}px"
+        title="${escapeHtml(task.name)}：${task.start}〜${task.end}"
+      >${progress}</button>`;
+  }
+
+  function renderActualBar(task, layout) {
+    if (!viewOptions.actual || !task.actualStart) {
+      return '';
+    }
+
+    const startDay = toDayNumber(task.actualStart);
+    const endDay = task.actualEnd
+      ? toDayNumber(task.actualEnd)
+      : Math.max(startDay, layout.statusDay);
+    const width = Math.max(4, (endDay - startDay + 1) * layout.pixelsPerDay);
+    const left = layout.dateToX(startDay);
+    return `<div class="actual" style="left:${left}px;width:${width}px" title="実績 ${task.actualStart}〜${task.actualEnd || '基準日まで（未完了）'}"></div>`;
+  }
+
+  function renderDependencyPaths(layout) {
+    if (!viewOptions.deps) {
+      return '';
+    }
+
+    let paths = '';
+    project.tasks.forEach((task, targetRow) => {
+      task.deps.forEach((predecessorId) => {
+        const sourceRow = project.tasks.findIndex((candidate) => candidate.id === predecessorId);
+        const predecessor = project.tasks[sourceRow];
+        const sourceX =
+          layout.dateToX(toDayNumber(predecessor.start)) +
+          (predecessor.milestone
+            ? Math.SQRT2 * 8
+            : Math.max(8, getTaskDuration(predecessor) * layout.pixelsPerDay));
+        const targetX =
+          layout.dateToX(toDayNumber(task.start)) - (task.milestone ? Math.SQRT2 * 8 : 0);
+        const route = getDependencyPoints(sourceX, targetX, sourceRow, targetRow, layout.rowHeight);
+        const path = route
+          .map(([positionX, positionY], index) => `${index ? 'L' : 'M'}${positionX},${positionY}`)
+          .join(' ');
+        paths += `<path d="${path}" class="dependency" marker-end="url(#arrow)"/>`;
+      });
+    });
+    return paths;
+  }
+
+  function renderProgressLine(layout) {
+    if (!viewOptions.lightning) {
+      return '';
+    }
+
+    const points = project.tasks.map((task, rowIndex) => {
+      const baseline = project.baseline?.tasks[task.id] || task;
+      let progressDay = layout.statusDay;
+      if (task.progress < 100 && layout.statusDay >= toDayNumber(baseline.start)) {
+        progressDay = baseline.milestone
+          ? toDayNumber(baseline.start)
+          : toDayNumber(baseline.start) +
+            ((toDayNumber(baseline.end) - toDayNumber(baseline.start) + 1) * task.progress) / 100;
+      }
+      return `${layout.dateToX(progressDay)},${rowIndex * layout.rowHeight + 26}`;
+    });
+    const statusX = layout.dateToX(layout.statusDay);
+    return `<polyline points="${statusX},0 ${points.join(' ')} ${statusX},${layout.chartHeight}" class="lightning"/>`;
+  }
+
+  function renderChartOverlay(layout) {
+    const { chartWidth, chartHeight, dateToX, statusDay } = layout;
+    const statusX = dateToX(statusDay);
+    const statusLine =
+      statusX >= 0 && statusX <= chartWidth
+        ? `<path d="M${statusX},0 V${chartHeight}" class="todayline"/>`
+        : '';
+    return `
+      <svg class="overlay" width="${chartWidth}" height="${chartHeight}" viewBox="0 0 ${chartWidth} ${chartHeight}">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M0 0 L10 5 L0 10" fill="#8c9bac"/>
+          </marker>
+        </defs>
+        ${renderDependencyPaths(layout)}
+        ${statusLine}
+        ${renderProgressLine(layout)}
+      </svg>`;
+  }
+
+  function openTask(id = null) {
+    editingTaskId = id;
+    const task = project.tasks.find((task) => task.id === id) || {
+      id:
+        'T' +
+        String(
+          Math.max(0, ...project.tasks.map((task) => Number(task.id.replace(/^T/, '')) || 0)) + 1,
+        ).padStart(2, '0'),
+      name: '',
+      owner: '',
+      start: project.statusDate || getTodayDate(),
+      end: project.statusDate || getTodayDate(),
+      progress: 0,
+      deps: [],
+      lag: 0,
+      milestone: false,
+      actualStart: '',
+      actualEnd: '',
+      note: '',
+    };
+    $('taskForm').reset();
+    for (const key of [
+      'id',
+      'name',
+      'owner',
+      'start',
+      'end',
+      'progress',
+      'lag',
+      'actualStart',
+      'actualEnd',
+      'note',
+    ]) {
+      $('f_' + key).value = task[key] ?? '';
+    }
+    $('f_milestone').checked = !!task.milestone;
+    $('f_deps').innerHTML =
+      project.tasks
+        .filter((x) => x.id !== id)
+        .map(
+          (x) =>
+            `<label class="depoption"><input type="checkbox" value="${escapeHtml(x.id)}" ${task.deps.includes(x.id) ? 'checked' : ''}><span>${escapeHtml(x.id + ' ' + x.name)}</span></label>`,
+        )
+        .join('') || '<span class="muted">先行タスクはありません</span>';
+    $('deleteTask').hidden = !id;
+    $('dialogTitle').textContent = id ? 'タスクを編集' : 'タスクを追加';
+    $('formError').textContent = '';
+    $('dialog').showModal();
+  }
+
+  function saveTaskFromForm(event) {
+    event.preventDefault();
+    try {
+      const task = {};
+      for (const key of [
+        'id',
+        'name',
+        'owner',
+        'start',
+        'end',
+        'actualStart',
+        'actualEnd',
+        'note',
+      ]) {
+        task[key] = $('f_' + key).value.trim();
+      }
+      task.progress = Number($('f_progress').value);
+      task.lag = Number($('f_lag').value);
+      task.milestone = $('f_milestone').checked;
+      if (task.milestone) {
+        task.end = task.start;
+      }
+      task.deps = [...$('f_deps').querySelectorAll('input:checked')].map(
+        (candidate) => candidate.value,
+      );
+      const updatedProject = structuredClone(project);
+      if (editingTaskId) {
+        updatedProject.tasks = updatedProject.tasks.map((candidate) =>
+          candidate.id === editingTaskId ? task : candidate,
+        );
+        if (task.id !== editingTaskId) {
+          updatedProject.tasks.forEach(
+            (candidate) =>
+              (candidate.deps = candidate.deps.map((predecessorId) =>
+                predecessorId === editingTaskId ? task.id : predecessorId,
+              )),
+          );
+          if (updatedProject.target === editingTaskId) {
+            updatedProject.target = task.id;
+          }
+          if (updatedProject.baseline?.tasks[editingTaskId]) {
+            updatedProject.baseline.tasks[task.id] = updatedProject.baseline.tasks[editingTaskId];
+            delete updatedProject.baseline.tasks[editingTaskId];
+          }
+        }
+      } else {
+        updatedProject.tasks.push(task);
+      }
+      validateProject(updatedProject);
+      project = updatedProject;
+      persist();
+      $('dialog').close();
+    } catch (error) {
+      $('formError').textContent = error.message;
+    }
+  }
+
+  function deleteSelectedTask() {
+    const task = project.tasks.find((task) => task.id === editingTaskId);
+    const dependentTasks = project.tasks.filter((task) => task.deps.includes(editingTaskId));
+    if (
+      !confirm(
+        `「${task.name}」を削除しますか？${dependentTasks.length ? ' 後続タスクの依存関係からも外れます。' : ''}`,
+      )
+    ) {
+      return;
+    }
+    project.tasks = project.tasks.filter((task) => task.id !== editingTaskId);
+    project.tasks.forEach((task) => (task.deps = task.deps.filter((id) => id !== editingTaskId)));
+    persist();
+    $('dialog').close();
+  }
+
+  function toggleChartExpansion() {
+    const expanded = document.body.classList.toggle('chartfocus');
+    $('expandChart').textContent = expanded ? '通常表示に戻す' : 'チャートを広く';
+    requestAnimationFrame(render);
+  }
+
+  let resizeTimer;
+
+  function saveBaseline() {
+    if (
+      project.baseline &&
+      !confirm(
+        '現在の基準計画を置き換えます。古い基準計画を残す場合は、先にJSON保存してください。置き換えますか？',
+      )
+    ) {
+      return;
+    }
+    project.baseline = {
+      savedAt: getTodayDate(),
+      tasks: Object.fromEntries(
+        project.tasks.map((task) => [
+          task.id,
+          { start: task.start, end: task.end, milestone: task.milestone },
+        ]),
+      ),
+    };
+    persist();
+    toast('現在の計画を基準計画として保存しました');
+  }
+
+  function reschedulePendingTasks() {
+    const analysis = analyzeSchedule(project.tasks);
+    const changed = project.tasks.filter(
+      (task) =>
+        analysis.es[task.id] > toDayNumber(task.start) && task.progress === 0 && !task.actualStart,
+    );
+    if (!changed.length) {
+      toast('後ろに移動する未着手タスクはありません');
+      return;
+    }
+    if (
+      !confirm(
+        `${changed.length}件の未着手タスクを、先行タスクの完了後へ移動します。着手済みのタスクは動かしません。実行しますか？`,
+      )
+    ) {
+      return;
+    }
+    for (const task of changed) {
+      const taskDuration = getTaskDuration(task);
+      task.start = toDateString(analysis.es[task.id]);
+      task.end = toDateString(analysis.es[task.id] + Math.max(0, taskDuration - 1));
+    }
+    persist();
+    toast('依存関係に合わせて日程を更新しました');
+  }
+
+  function download(name, content, type) {
+    const url = URL.createObjectURL(new Blob([content], { type }));
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    downloadLink.download = name;
+    downloadLink.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  async function saveProjectFile() {
+    try {
+      const text = JSON.stringify(project, null, 2);
+      if (projectFileHandle) {
+        const writable = await projectFileHandle.createWritable();
+        await writable.write(text);
+        await writable.close();
+        toast('開いたJSONファイルへ保存しました');
+      } else {
+        download(project.name.replace(/[\\/:*?"<>|]/g, '_') + '.json', text, 'application/json');
+        toast('JSONを保存しました。共有フォルダに置いて使えます');
+      }
+      hasUnsavedChanges = false;
+    } catch (error) {
+      toast('保存できませんでした：' + error.message);
+    }
+  }
+  async function openProjectFile() {
+    if (
+      hasUnsavedChanges &&
+      !confirm(
+        'JSONファイルを開くと現在の表示を置き換えます。必要なら先にJSON保存してください。続けますか？',
+      )
+    ) {
+      return;
+    }
+    if (window.showOpenFilePicker) {
+      try {
+        const [handle] = await showOpenFilePicker({
+          types: [{ description: 'プロジェクトJSON', accept: { 'application/json': ['.json'] } }],
+          multiple: false,
+        });
+        const loadedProject = validateProject(JSON.parse(await (await handle.getFile()).text()));
+        project = loadedProject;
+        projectFileHandle = handle;
+        persist();
+        hasUnsavedChanges = false;
+        toast('読み込みました。JSON保存で同じファイルに上書きできます');
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          toast('読込できませんでした：' + error.message);
+        }
+      }
+    } else {
+      $('fileInput').click();
+    }
+  }
+  async function loadProjectFromFileInput(event) {
+    try {
+      const file = event.target.files[0];
+      if (!file) {
+        return;
+      }
+      project = validateProject(JSON.parse(await file.text()));
+      projectFileHandle = null;
+      persist();
+      hasUnsavedChanges = false;
+      toast('読み込みました');
+    } catch (error) {
+      toast('読込できませんでした：' + error.message);
+    } finally {
+      event.target.value = '';
+    }
+  }
+
+  function startNewProject() {
+    if (
+      !confirm('新規プロジェクトに切り替えます。現在の内容は先にJSON保存してください。続けますか？')
+    ) {
+      return;
+    }
+    project = {
+      version: 1,
+      name: '新しいプロジェクト',
+      tasks: [],
+      target: 'all',
+      statusDate: getTodayDate(),
+      baseline: null,
+    };
+    projectFileHandle = null;
+    persist();
+  }
+
+  function loadSampleProject() {
+    if (
+      !confirm('講演会サンプルに切り替えます。現在の内容は先にJSON保存してください。続けますか？')
+    ) {
+      return;
+    }
+    project = createSampleProject();
+    projectFileHandle = null;
+    persist();
+  }
+
+  bindEvents();
+  render();
+
+  // DOMイベントの登録はここに集約する。
+  function bindEvents() {
+    $('taskForm').onsubmit = saveTaskFromForm;
+    $('deleteTask').onclick = deleteSelectedTask;
+    $('expandChart').onclick = toggleChartExpansion;
+    window.addEventListener('keydown', (event) => {
+      if (
+        event.key === 'Escape' &&
+        document.body.classList.contains('chartfocus') &&
+        !$('dialog').open &&
+        !$('helpDialog').open
+      ) {
+        document.body.classList.remove('chartfocus');
+        $('expandChart').textContent = 'チャートを広く';
+        render();
+      }
+    });
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(render, 100);
+    });
+    $('closeDialog').onclick = () => $('dialog').close();
+    $('addTask').onclick = () => openTask();
+    $('projectName').onchange = (event) => {
+      project.name = event.target.value.trim() || '新しいプロジェクト';
+      persist();
+    };
+    $('statusDate').onchange = (event) => {
+      if (event.target.value) {
+        project.statusDate = event.target.value;
+        persist();
+      }
+    };
+    $('target').onchange = (event) => {
+      project.target = event.target.value;
+      persist();
+    };
+    $('scale').onchange = (event) => {
+      viewOptions.scale = Number(event.target.value);
+      render();
+    };
+    for (const optionName of ['baseline', 'actual', 'lightning', 'deps', 'critical']) {
+      $('v_' + optionName).onchange = (event) => {
+        viewOptions[optionName] = event.target.checked;
+        render();
+      };
+    }
+    $('saveBaseline').onclick = saveBaseline;
+    $('schedule').onclick = reschedulePendingTasks;
+    $('saveFile').onclick = saveProjectFile;
+    $('openFile').onclick = openProjectFile;
+    $('fileInput').onchange = loadProjectFromFileInput;
+    $('newProject').onclick = startNewProject;
+    $('loadSample').onclick = loadSampleProject;
+    $('print').onclick = () => window.print();
+    $('helpButton').onclick = () => $('helpDialog').showModal();
+    $('closeHelp').onclick = () => $('helpDialog').close();
+    window.addEventListener('beforeunload', (event) => {
+      if (hasUnsavedChanges) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    });
+  }
+}
+
+if (typeof document !== 'undefined') {
+  initializeApp();
 }

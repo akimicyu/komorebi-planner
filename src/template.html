@@ -1,10 +1,983 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>こもれび計画 — 小さなチームのガントチャート</title><style>
-:root{--ink:#233c38;--green:#226c57;--paper:#f5f6f2;--line:#e0e6df;--red:#be5c53}*{box-sizing:border-box}body{margin:0;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:var(--paper);font-size:13px}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;background:white;border:1px solid #d7dfd7;border-radius:7px;padding:9px 13px}button:hover{background:#eef4ee}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #82b7a6;outline-offset:2px}.primary{background:var(--green);color:white;border-color:var(--green)}.primary:hover{background:#195440}.brand{display:flex;align-items:center;gap:12px}.logo{display:grid;place-items:center;font-size:24px;background:#e4eee4;border-radius:12px;width:43px;height:43px}.brand strong{font-size:19px;letter-spacing:.04em}.brand small{display:block;color:#7b8b81;margin-top:4px;font-size:11px}header{padding:22px 30px;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:15px}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}main{padding:26px 30px 20px;max-width:2000px;margin:auto}.eyebrow{color:#6c8876;font-size:10px;letter-spacing:.17em;font-weight:700}.projectline{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:16px}#projectName{font-size:25px;font-weight:700;background:transparent;border:0;min-width:0;width:100%;padding:5px 0}#saveState{font-size:11px;color:#718276;white-space:nowrap}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:23px 0}.stat{padding:16px 20px;background:white;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:space-between}.stat span{color:#758277}.stat b{font-size:26px;font-weight:600}.stat.red b{color:var(--red)}.workspace{background:white;border:1px solid var(--line);border-radius:12px;overflow:hidden}.toolbar{padding:15px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line)}.toolbar label{display:flex;align-items:center;gap:7px;font-size:12px}input,select,textarea{background:white;border:1px solid #d7dfd7;border-radius:5px;padding:7px}#target{max-width:235px}.divider{width:1px;background:var(--line);height:25px;margin:0 4px}.toggles{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#fafbf8;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:11px}.toggles label{display:flex;align-items:center;gap:4px}input[type=checkbox]{accent-color:var(--green)}.baselineinfo{margin-left:auto;color:#849087}#scroll{overflow:auto;max-height:65vh;min-height:240px}#chart{position:relative;isolation:isolate}.grid{display:grid;grid-template-columns:650px auto}.head{height:62px;background:#f8faf6;border-bottom:1px solid var(--line);font-size:11px;z-index:5}.left{position:sticky;left:0;z-index:4;background:white;display:grid;grid-template-columns:330px 170px 70px 80px;align-items:center;text-align:left}.head.left{background:#f8faf6;z-index:8;padding-left:18px}.head.left span:first-child{grid-column:1}.task{height:54px;border:0;border-radius:0;border-bottom:1px solid #e9ede7;padding:0;font-size:11px}.tasktext{padding:0 16px;overflow:hidden}.tasktext small{font-size:10px;color:#8a968c;display:block;margin-bottom:3px}.tasktext strong{font-size:12px;font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.iscritical{box-shadow:inset 3px 0 var(--red)}.period{font-variant-numeric:tabular-nums;color:#687b70}.warning{color:#bb6748;display:block;font-size:9px}.pct{color:var(--green);font-weight:600}.slack{color:#8b958b}.timeline{position:relative;overflow:hidden}.months,.ticks{position:absolute;width:100%;height:31px;left:0;top:0}.ticks{top:31px;border-top:1px solid #e6ebe3}.months span,.ticks span{position:absolute;font-size:10px;padding:8px;border-left:1px solid #e6ebe3;white-space:nowrap}.months span{font-weight:600}.lane{position:relative;height:54px;border-bottom:1px solid #e9ede7;background-image:linear-gradient(to right,#f0f3ed 1px,transparent 1px);background-size:28px 100%}.bar{position:absolute;top:12px;height:19px;padding:0;border:0;border-radius:4px;background:#c2d9cd;overflow:hidden;z-index:2;min-width:0}.bar:hover{filter:brightness(.95)}.bar i{height:100%;background:#438d73;display:block}.bar.critical{background:#eac5be}.bar.critical i{background:#be685a}.bar.milestone{width:12px!important;height:12px;top:16px;border-radius:1px;transform:translateX(-6px) rotate(45deg);background:#4f7f6b}.bar.milestone.critical{background:var(--red)}.base{position:absolute;top:35px;height:4px;background:#b9c1c6;border-radius:2px}.actual{position:absolute;top:42px;height:4px;background:#4b83ac;border-radius:2px}.overlaywrap{position:absolute;pointer-events:none;z-index:3;overflow:hidden}.overlay{overflow:hidden}.dependency{stroke:#91a0af;stroke-width:1;fill:none;opacity:.8}.todayline{stroke:#778e80;stroke-width:1;stroke-dasharray:4 4}.lightning{stroke:#d69b30;stroke-width:2;fill:none;stroke-linejoin:round}.legend{display:flex;gap:18px;align-items:center;padding:14px 18px;font-size:11px;border-top:1px solid var(--line);flex-wrap:wrap;color:#738177}.legend span{display:flex;gap:6px;align-items:center}.swatch{width:18px;height:5px;border-radius:2px;background:#438d73}.swatch.red{background:var(--red)}.swatch.gray{background:#b9c1c6}.swatch.blue{background:#4b83ac}.swatch.gold{background:#d69b30}#note{color:#859185;font-size:11px;line-height:1.8;margin:13px 2px}footer{display:flex;justify-content:space-between;color:#899389;font-size:11px;gap:10px;margin-top:18px}footer button{padding:3px 0;border:0;background:transparent;color:#607e6e}.empty{padding:80px;text-align:center;color:#899389}dialog{border:1px solid var(--line);border-radius:14px;width:min(710px,94vw);padding:25px;box-shadow:0 25px 90px #19382e33;max-height:90vh;color:var(--ink)}dialog::backdrop{background:#203d3655;backdrop-filter:blur(2px)}.dialoghead{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.dialoghead h2{margin:0;font-size:20px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.fields>label{display:flex;flex-direction:column;gap:6px;font-size:12px}.fields .wide{grid-column:1/-1}.fields .inline{flex-direction:row;align-items:center}#f_deps{max-height:135px;overflow:auto;border:1px solid var(--line);border-radius:6px;padding:8px}.depoption{display:flex;gap:6px;align-items:center;padding:4px;font-size:11px}.formactions{display:flex;justify-content:space-between;align-items:center;margin-top:20px}.danger{color:#b6534b}.error{color:#b6534b;font-size:12px;min-height:18px;margin-top:10px}.muted{color:#819082}.help{line-height:1.9}.help h3{font-size:14px;margin:18px 0 4px}.help p{margin:5px 0;font-size:12px}#toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%) translateY(20px);background:#254b3e;color:white;padding:13px 22px;border-radius:8px;box-shadow:0 4px 30px #132d3322;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:90vw}#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}@media(max-width:800px){header{padding:15px;align-items:flex-start;flex-direction:column}main{padding:20px 12px}.stats{gap:6px}.stat{padding:12px 9px;flex-direction:column;align-items:flex-start;gap:5px}.stat span{font-size:10px}.projectline{flex-direction:column;align-items:flex-start}#projectName{font-size:20px}.toolbar{padding:12px}.divider{display:none}.baselineinfo{margin-left:0}.fields{grid-template-columns:1fr}.fields .wide{grid-column:1}.actions button{padding:8px 10px}}@media print{@page{size:A3 landscape;margin:12mm}body{background:white}header,.toolbar,.toggles,footer,#note,#saveState{display:none}main{padding:0}.stats{margin:10px 0}.stat{padding:8px}.stat b{font-size:18px}.workspace{overflow:visible;border:0}#scroll{overflow:visible;max-height:none}#chart{zoom:.55}.left{position:static}.legend{padding:8px}button{-webkit-print-color-adjust:exact;print-color-adjust:exact}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>こもれび計画 — 小さなチームのガントチャート</title>
+    <style>
+      :root {
+        --ink: #233c38;
+        --green: #226c57;
+        --paper: #f5f6f2;
+        --line: #e0e6df;
+        --red: #be5c53;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+        background: var(--paper);
+        font-size: 13px;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+        background: white;
+        border: 1px solid #d7dfd7;
+        border-radius: 7px;
+        padding: 9px 13px;
+      }
+      button:hover {
+        background: #eef4ee;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 3px solid #82b7a6;
+        outline-offset: 2px;
+      }
+      .primary {
+        background: var(--green);
+        color: white;
+        border-color: var(--green);
+      }
+      .primary:hover {
+        background: #195440;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo {
+        display: grid;
+        place-items: center;
+        font-size: 24px;
+        background: #e4eee4;
+        border-radius: 12px;
+        width: 43px;
+        height: 43px;
+      }
+      .brand strong {
+        font-size: 19px;
+        letter-spacing: 0.04em;
+      }
+      .brand small {
+        display: block;
+        color: #7b8b81;
+        margin-top: 4px;
+        font-size: 11px;
+      }
+      header {
+        padding: 22px 30px;
+        background: #fff;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      main {
+        padding: 26px 30px 20px;
+        max-width: 2000px;
+        margin: auto;
+      }
+      .eyebrow {
+        color: #6c8876;
+        font-size: 10px;
+        letter-spacing: 0.17em;
+        font-weight: 700;
+      }
+      .projectline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 8px;
+        gap: 16px;
+      }
+      #projectName {
+        font-size: 25px;
+        font-weight: 700;
+        background: transparent;
+        border: 0;
+        min-width: 0;
+        width: 100%;
+        padding: 5px 0;
+      }
+      #saveState {
+        font-size: 11px;
+        color: #718276;
+        white-space: nowrap;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 13px;
+        margin: 23px 0;
+      }
+      .stat {
+        padding: 16px 20px;
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .stat span {
+        color: #758277;
+      }
+      .stat b {
+        font-size: 26px;
+        font-weight: 600;
+      }
+      .stat.red b {
+        color: var(--red);
+      }
+      .workspace {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .toolbar {
+        padding: 15px 18px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--line);
+      }
+      .toolbar label {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+      }
+      input,
+      select,
+      textarea {
+        background: white;
+        border: 1px solid #d7dfd7;
+        border-radius: 5px;
+        padding: 7px;
+      }
+      #target {
+        max-width: 235px;
+      }
+      .divider {
+        width: 1px;
+        background: var(--line);
+        height: 25px;
+        margin: 0 4px;
+      }
+      .toggles {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 18px;
+        background: #fafbf8;
+        border-bottom: 1px solid var(--line);
+        flex-wrap: wrap;
+        font-size: 11px;
+      }
+      .toggles label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      input[type='checkbox'] {
+        accent-color: var(--green);
+      }
+      .baselineinfo {
+        margin-left: auto;
+        color: #849087;
+      }
+      #scroll {
+        overflow: auto;
+        max-height: 65vh;
+        min-height: 240px;
+      }
+      #chart {
+        position: relative;
+        isolation: isolate;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 650px auto;
+      }
+      .head {
+        height: 62px;
+        background: #f8faf6;
+        border-bottom: 1px solid var(--line);
+        font-size: 11px;
+        z-index: 5;
+      }
+      .left {
+        position: sticky;
+        left: 0;
+        z-index: 4;
+        background: white;
+        display: grid;
+        grid-template-columns: 330px 170px 70px 80px;
+        align-items: center;
+        text-align: left;
+      }
+      .head.left {
+        background: #f8faf6;
+        z-index: 8;
+        padding-left: 18px;
+      }
+      .head.left span:first-child {
+        grid-column: 1;
+      }
+      .task {
+        height: 54px;
+        border: 0;
+        border-radius: 0;
+        border-bottom: 1px solid #e9ede7;
+        padding: 0;
+        font-size: 11px;
+      }
+      .tasktext {
+        padding: 0 16px;
+        overflow: hidden;
+      }
+      .tasktext small {
+        font-size: 10px;
+        color: #8a968c;
+        display: block;
+        margin-bottom: 3px;
+      }
+      .tasktext strong {
+        font-size: 12px;
+        font-weight: 500;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .iscritical {
+        box-shadow: inset 3px 0 var(--red);
+      }
+      .period {
+        font-variant-numeric: tabular-nums;
+        color: #687b70;
+      }
+      .warning {
+        color: #bb6748;
+        display: block;
+        font-size: 9px;
+      }
+      .pct {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .slack {
+        color: #8b958b;
+      }
+      .timeline {
+        position: relative;
+        overflow: hidden;
+      }
+      .months,
+      .ticks {
+        position: absolute;
+        width: 100%;
+        height: 31px;
+        left: 0;
+        top: 0;
+      }
+      .ticks {
+        top: 31px;
+        border-top: 1px solid #e6ebe3;
+      }
+      .months span,
+      .ticks span {
+        position: absolute;
+        font-size: 10px;
+        padding: 8px;
+        border-left: 1px solid #e6ebe3;
+        white-space: nowrap;
+      }
+      .months span {
+        font-weight: 600;
+      }
+      .lane {
+        position: relative;
+        height: 54px;
+        border-bottom: 1px solid #e9ede7;
+        background-image: linear-gradient(to right, #f0f3ed 1px, transparent 1px);
+        background-size: 28px 100%;
+      }
+      .bar {
+        position: absolute;
+        top: 12px;
+        height: 19px;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        background: #c2d9cd;
+        overflow: hidden;
+        z-index: 2;
+        min-width: 0;
+      }
+      .bar:hover {
+        filter: brightness(0.95);
+      }
+      .bar i {
+        height: 100%;
+        background: #438d73;
+        display: block;
+      }
+      .bar.critical {
+        background: #eac5be;
+      }
+      .bar.critical i {
+        background: #be685a;
+      }
+      .bar.milestone {
+        width: 12px !important;
+        height: 12px;
+        top: 16px;
+        border-radius: 1px;
+        transform: translateX(-6px) rotate(45deg);
+        background: #4f7f6b;
+      }
+      .bar.milestone.critical {
+        background: var(--red);
+      }
+      .base {
+        position: absolute;
+        top: 35px;
+        height: 4px;
+        background: #b9c1c6;
+        border-radius: 2px;
+      }
+      .actual {
+        position: absolute;
+        top: 42px;
+        height: 4px;
+        background: #4b83ac;
+        border-radius: 2px;
+      }
+      .overlaywrap {
+        position: absolute;
+        pointer-events: none;
+        z-index: 3;
+        overflow: hidden;
+      }
+      .overlay {
+        overflow: hidden;
+      }
+      .dependency {
+        stroke: #91a0af;
+        stroke-width: 1;
+        fill: none;
+        opacity: 0.8;
+      }
+      .todayline {
+        stroke: #778e80;
+        stroke-width: 1;
+        stroke-dasharray: 4 4;
+      }
+      .lightning {
+        stroke: #d69b30;
+        stroke-width: 2;
+        fill: none;
+        stroke-linejoin: round;
+      }
+      .legend {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        padding: 14px 18px;
+        font-size: 11px;
+        border-top: 1px solid var(--line);
+        flex-wrap: wrap;
+        color: #738177;
+      }
+      .legend span {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .swatch {
+        width: 18px;
+        height: 5px;
+        border-radius: 2px;
+        background: #438d73;
+      }
+      .swatch.red {
+        background: var(--red);
+      }
+      .swatch.gray {
+        background: #b9c1c6;
+      }
+      .swatch.blue {
+        background: #4b83ac;
+      }
+      .swatch.gold {
+        background: #d69b30;
+      }
+      #note {
+        color: #859185;
+        font-size: 11px;
+        line-height: 1.8;
+        margin: 13px 2px;
+      }
+      footer {
+        display: flex;
+        justify-content: space-between;
+        color: #899389;
+        font-size: 11px;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      footer button {
+        padding: 3px 0;
+        border: 0;
+        background: transparent;
+        color: #607e6e;
+      }
+      .empty {
+        padding: 80px;
+        text-align: center;
+        color: #899389;
+      }
+      dialog {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        width: min(710px, 94vw);
+        padding: 25px;
+        box-shadow: 0 25px 90px #19382e33;
+        max-height: 90vh;
+        color: var(--ink);
+      }
+      dialog::backdrop {
+        background: #203d3655;
+        backdrop-filter: blur(2px);
+      }
+      .dialoghead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+      .dialoghead h2 {
+        margin: 0;
+        font-size: 20px;
+      }
+      .fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .fields > label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 12px;
+      }
+      .fields .wide {
+        grid-column: 1/-1;
+      }
+      .fields .inline {
+        flex-direction: row;
+        align-items: center;
+      }
+      #f_deps {
+        max-height: 135px;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px;
+      }
+      .depoption {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        padding: 4px;
+        font-size: 11px;
+      }
+      .formactions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+      }
+      .danger {
+        color: #b6534b;
+      }
+      .error {
+        color: #b6534b;
+        font-size: 12px;
+        min-height: 18px;
+        margin-top: 10px;
+      }
+      .muted {
+        color: #819082;
+      }
+      .help {
+        line-height: 1.9;
+      }
+      .help h3 {
+        font-size: 14px;
+        margin: 18px 0 4px;
+      }
+      .help p {
+        margin: 5px 0;
+        font-size: 12px;
+      }
+      #toast {
+        position: fixed;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: #254b3e;
+        color: white;
+        padding: 13px 22px;
+        border-radius: 8px;
+        box-shadow: 0 4px 30px #132d3322;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.2s;
+        z-index: 100;
+        max-width: 90vw;
+      }
+      #toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      @media (max-width: 800px) {
+        header {
+          padding: 15px;
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        main {
+          padding: 20px 12px;
+        }
+        .stats {
+          gap: 6px;
+        }
+        .stat {
+          padding: 12px 9px;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 5px;
+        }
+        .stat span {
+          font-size: 10px;
+        }
+        .projectline {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        #projectName {
+          font-size: 20px;
+        }
+        .toolbar {
+          padding: 12px;
+        }
+        .divider {
+          display: none;
+        }
+        .baselineinfo {
+          margin-left: 0;
+        }
+        .fields {
+          grid-template-columns: 1fr;
+        }
+        .fields .wide {
+          grid-column: 1;
+        }
+        .actions button {
+          padding: 8px 10px;
+        }
+      }
+      @media print {
+        @page {
+          size: A3 landscape;
+          margin: 12mm;
+        }
+        body {
+          background: white;
+        }
+        header,
+        .toolbar,
+        .toggles,
+        footer,
+        #note,
+        #saveState {
+          display: none;
+        }
+        main {
+          padding: 0;
+        }
+        .stats {
+          margin: 10px 0;
+        }
+        .stat {
+          padding: 8px;
+        }
+        .stat b {
+          font-size: 18px;
+        }
+        .workspace {
+          overflow: visible;
+          border: 0;
+        }
+        #scroll {
+          overflow: visible;
+          max-height: none;
+        }
+        #chart {
+          zoom: 0.55;
+        }
+        .left {
+          position: static;
+        }
+        .legend {
+          padding: 8px;
+        }
+        button {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
 
-/* Readable chart layout */
-main{max-width:none}.grid{grid-template-columns:720px auto}.left{grid-template-columns:360px 190px 80px 90px}.head{height:72px;font-size:13px}.task,.lane{height:64px}.task{font-size:14px}.tasktext strong{font-size:14px;font-weight:500}.tasktext small{font-size:12px;color:#64766a}.period{font-size:13px;color:#52695b}.slack{color:#647568}.warning{font-size:11px}.months,.ticks{height:36px}.ticks{top:36px}.months span,.ticks span{font-size:12px;padding:9px 7px}.bar{top:14px;height:25px}.base{top:44px;height:5px}.actual{top:53px;height:5px}.bar.milestone{top:19px;width:16px!important;height:16px}.dependency{stroke-width:1.4;opacity:1}.legend,.toggles{font-size:12px}#scroll{max-height:72vh}.chartfocus{overflow:hidden}.chartfocus .workspace{position:fixed;inset:12px;z-index:50;display:flex;flex-direction:column;box-shadow:0 0 0 20px var(--paper)}.chartfocus #scroll{flex:1;min-height:0;max-height:none}.chartfocus .toolbar,.chartfocus .toggles,.chartfocus .legend{flex-shrink:0}.chartfocus #expandChart{background:#226c57;color:white}.head{position:sticky;top:0}.head.left{z-index:8}.months span{overflow:hidden}#chart .head.timeline{z-index:5}@media print{.chartfocus .workspace{position:static;display:block;box-shadow:none}.chartfocus #scroll{max-height:none;overflow:visible}#chart{zoom:.55}}
-</style></head><body><header><div class="brand"><div class="logo">▥</div><div><strong>こもれび計画</strong><small>小さなチームのためのガントチャート</small></div></div><div class="actions"><button id="newProject">新規</button><button id="openFile">JSONを開く</button><button id="print">印刷 / PDF</button><button id="saveFile" class="primary">↓ JSON保存</button></div></header><main><div class="eyebrow">PROJECT PLANNER / LOCAL EDITION</div><div class="projectline"><input id="projectName" aria-label="プロジェクト名"><span id="saveState">端末内に保存 · 共有するときはJSON保存</span></div><div class="stats"><div class="stat"><span>すべてのタスク</span><b id="count">0</b></div><div class="stat"><span>完了したタスク</span><b id="done">0</b></div><div class="stat red"><span>基準日時点の期限超過</span><b id="late">0</b></div><div class="stat red"><span>余裕0日の未完了タスク</span><b id="criticalCount">0</b></div></div><section class="workspace"><div class="toolbar"><button id="addTask" class="primary">＋ タスク追加</button><div class="divider"></div><label>基準日 <input type="date" id="statusDate"></label><label>目標 <select id="target"></select></label><label>表示 <select id="scale"><option value="0" selected>画面に合わせる</option><option value="5">月</option><option value="10">週</option><option value="24">日</option></select></label><button id="schedule">依存に合わせて日程調整</button><button id="saveBaseline">基準計画を保存</button><button id="expandChart">チャートを広く</button></div><div class="toggles"><label><input type="checkbox" id="v_deps" checked>依存関係</label><label><input type="checkbox" id="v_critical" checked>クリティカルパス</label><label><input type="checkbox" id="v_baseline" checked>基準計画</label><label><input type="checkbox" id="v_actual" checked>実績期間</label><label><input type="checkbox" id="v_lightning" checked>イナズマ線</label><span class="baselineinfo" id="baselineLabel"></span></div><div id="scroll"><div id="chart"></div></div><div class="legend"><span><i class="swatch"></i>現在計画 / 濃色＝進捗</span><span><i class="swatch red"></i>余裕0日</span><span><i class="swatch gray"></i>基準計画</span><span><i class="swatch blue"></i>実績期間</span><span><i class="swatch gold"></i>イナズマ線</span><span>点線＝基準日 · 行やバーをクリックして編集</span></div></section><p id="note"></p><footer><span>計画データは端末内に保存 · アカウント不要 · 暦日で計算</span><div><button id="loadSample">講演会サンプル</button>　/　<button id="helpButton">使い方・計算のルール</button></div></footer></main>
-<dialog id="dialog"><div class="dialoghead"><h2 id="dialogTitle">タスクを編集</h2><button id="closeDialog" aria-label="閉じる">✕</button></div><form id="taskForm"><div class="fields"><label>ID<input id="f_id" required maxlength="40"></label><label>担当者<input id="f_owner" maxlength="100" list="ownerCandidates" placeholder="候補から選択、または新しい名前を入力" autocomplete="off"><datalist id="ownerCandidates"></datalist><small class="muted">入力した担当者は、このプロジェクトの候補に残ります。</small></label><label class="wide">タスク名<input id="f_name" required maxlength="200"></label><label>計画開始日<input type="date" id="f_start" required></label><label>計画終了日<input type="date" id="f_end" required></label><label>進捗率（%）<input type="number" id="f_progress" min="0" max="100" required></label><label>先行完了後の待ち日数<input type="number" id="f_lag" min="0" max="365" step="1" required></label><label class="inline wide"><input type="checkbox" id="f_milestone">マイルストーン（期間0日・開始日を使用）</label><label>実績開始日<input type="date" id="f_actualStart"></label><label>実績終了日<input type="date" id="f_actualEnd"></label><label class="wide">先行タスク（終了→開始）<div id="f_deps"></div></label><label class="wide">メモ<textarea id="f_note" rows="2" maxlength="3000"></textarea></label></div><div id="formError" class="error" role="alert"></div><div class="formactions"><button type="button" id="deleteTask" class="danger">タスクを削除</button><button type="submit" class="primary">変更を保存</button></div></form></dialog>
-<dialog id="helpDialog" class="help"><div class="dialoghead"><h2>使い方・計算のルール</h2><button id="closeHelp" aria-label="閉じる">✕</button></div><h3>1. 計画を作る</h3><p>タスクを追加し、担当者・期間・先行タスクを指定します。日付は土日祝を含む暦日です。作業時間や稼働率は計算しません。返信待ちや承認待ちも期間として見込んでください。講演会サンプルの日付・依存関係・進捗は例示です。</p><h3>2. 依存とクリティカルパス</h3><p>依存は終了→開始（FS）です。通常タスクは終了日の翌日から後続が開始できます。期間0日のマイルストーンは同日から後続を開始できます。待ち日数は各後続タスクの全先行に共通です。</p><p>現在の開始日を「これより前に着手しない日」として、先行順に最早日を計算し、選択した目標まで逆算して余裕0日のタスクを赤く表示します。目標への先行経路以外の余裕は「—」です。開催日を固定したマイルストーンを目標にすると、開催までの余裕を確認できます。固定日を超える遅延は日程不整合の警告と調整後の日付で確認してください。</p><p>計算は現在計画を対象とし、進捗率や実績日から残期間を自動予測しません。完了見込みが変わったら計画終了日を更新してください。「日程調整」は依存と矛盾する未着手タスクだけを後ろに移動します。着手済みは手動調整してください。</p><h3>3. 予実とイナズマ線</h3><p>計画が決まったら「基準計画を保存」。元の計画が灰色で残り、現在計画・実績期間と比較できます。基準計画は1世代です。更新前のJSONも保存しておくと履歴になります。</p><p>イナズマ線は基準計画の開始日＋期間×進捗率の位置を結びます。基準計画がなければ現在計画を使用します。基準日より左が遅れ、右が先行の目安です。完了タスクと着手予定日前のタスクは基準日に戻します。進捗率と期間の比率で可視化する簡易方式で、工数を使うEVM計算ではありません。未完了の実績バーは実績開始から基準日までを示します。</p><h3>4. 保存と共有</h3><p>編集内容はこのブラウザ内にも自動保存します。共有・バックアップの正本は「JSON保存」で書き出すファイルです。JSONを共有ストレージへ置き、他の人は「JSONを開く」で読み込みます。対応ブラウザでは開いたJSONに上書き保存でき、非対応ブラウザではダウンロードされます。</p><p>ファイルの同時編集・自動マージはありません。編集担当を交代して使ってください。閲覧だけの人には印刷/PDFが便利です。長い期間は表示を「全体」にして印刷してください。ブラウザデータの削除に備え、JSONを定期保存してください。</p></dialog><input type="file" id="fileInput" accept=".json,application/json" hidden><div id="toast" role="status"></div><script>
-/*APP*/
-</script></body></html>
+      /* Readable chart layout */
+      main {
+        max-width: none;
+      }
+      .grid {
+        grid-template-columns: 720px auto;
+      }
+      .left {
+        grid-template-columns: 360px 190px 80px 90px;
+      }
+      .head {
+        height: 72px;
+        font-size: 13px;
+      }
+      .task,
+      .lane {
+        height: 64px;
+      }
+      .task {
+        font-size: 14px;
+      }
+      .tasktext strong {
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .tasktext small {
+        font-size: 12px;
+        color: #64766a;
+      }
+      .period {
+        font-size: 13px;
+        color: #52695b;
+      }
+      .slack {
+        color: #647568;
+      }
+      .warning {
+        font-size: 11px;
+      }
+      .months,
+      .ticks {
+        height: 36px;
+      }
+      .ticks {
+        top: 36px;
+      }
+      .months span,
+      .ticks span {
+        font-size: 12px;
+        padding: 9px 7px;
+      }
+      .bar {
+        top: 14px;
+        height: 25px;
+      }
+      .base {
+        top: 44px;
+        height: 5px;
+      }
+      .actual {
+        top: 53px;
+        height: 5px;
+      }
+      .bar.milestone {
+        top: 19px;
+        width: 16px !important;
+        height: 16px;
+      }
+      .dependency {
+        stroke-width: 1.4;
+        opacity: 1;
+      }
+      .legend,
+      .toggles {
+        font-size: 12px;
+      }
+      #scroll {
+        max-height: 72vh;
+      }
+      .chartfocus {
+        overflow: hidden;
+      }
+      .chartfocus .workspace {
+        position: fixed;
+        inset: 12px;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 0 0 20px var(--paper);
+      }
+      .chartfocus #scroll {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+      }
+      .chartfocus .toolbar,
+      .chartfocus .toggles,
+      .chartfocus .legend {
+        flex-shrink: 0;
+      }
+      .chartfocus #expandChart {
+        background: #226c57;
+        color: white;
+      }
+      .head {
+        position: sticky;
+        top: 0;
+      }
+      .head.left {
+        z-index: 8;
+      }
+      .months span {
+        overflow: hidden;
+      }
+      #chart .head.timeline {
+        z-index: 5;
+      }
+      @media print {
+        .chartfocus .workspace {
+          position: static;
+          display: block;
+          box-shadow: none;
+        }
+        .chartfocus #scroll {
+          max-height: none;
+          overflow: visible;
+        }
+        #chart {
+          zoom: 0.55;
+        }
+      }
+      .head.left {
+        padding-left: 0;
+      }
+      .head.left span:first-child {
+        padding-left: 18px;
+      }
+      .pct,
+      .slack,
+      .head.left span:nth-child(3),
+      .head.left span:nth-child(4) {
+        text-align: right;
+        padding-right: 18px;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <div class="logo">▥</div>
+        <div><strong>こもれび計画</strong><small>小さなチームのためのガントチャート</small></div>
+      </div>
+      <div class="actions">
+        <button id="newProject">新規</button><button id="openFile">JSONを開く</button
+        ><button id="print">印刷 / PDF</button
+        ><button id="saveFile" class="primary">↓ JSON保存</button>
+      </div>
+    </header>
+    <main>
+      <div class="eyebrow">PROJECT PLANNER / LOCAL EDITION</div>
+      <div class="projectline">
+        <input id="projectName" aria-label="プロジェクト名" /><span id="saveState"
+          >端末内に保存 · 共有するときはJSON保存</span
+        >
+      </div>
+      <div class="stats">
+        <div class="stat"><span>すべてのタスク</span><b id="count">0</b></div>
+        <div class="stat"><span>完了したタスク</span><b id="done">0</b></div>
+        <div class="stat red"><span>基準日時点の期限超過</span><b id="late">0</b></div>
+        <div class="stat red"><span>余裕0日の未完了タスク</span><b id="criticalCount">0</b></div>
+      </div>
+      <section class="workspace">
+        <div class="toolbar">
+          <button id="addTask" class="primary">＋ タスク追加</button>
+          <div class="divider"></div>
+          <label>基準日 <input type="date" id="statusDate" /></label
+          ><label
+            >目標
+            <select id="target"></select></label
+          ><label
+            >表示
+            <select id="scale">
+              <option value="0" selected>画面に合わせる</option>
+              <option value="5">月</option>
+              <option value="10">週</option>
+              <option value="24">日</option>
+            </select></label
+          ><button id="schedule">依存に合わせて日程調整</button
+          ><button id="saveBaseline">基準計画を保存</button
+          ><button id="expandChart">チャートを広く</button>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="v_deps" checked />依存関係</label
+          ><label><input type="checkbox" id="v_critical" checked />クリティカルパス</label
+          ><label><input type="checkbox" id="v_baseline" checked />基準計画</label
+          ><label><input type="checkbox" id="v_actual" checked />実績期間</label
+          ><label><input type="checkbox" id="v_lightning" checked />イナズマ線</label
+          ><span class="baselineinfo" id="baselineLabel"></span>
+        </div>
+        <div id="scroll"><div id="chart"></div></div>
+        <div class="legend">
+          <span><i class="swatch"></i>現在計画 / 濃色＝進捗</span
+          ><span><i class="swatch red"></i>余裕0日</span
+          ><span><i class="swatch gray"></i>基準計画</span
+          ><span><i class="swatch blue"></i>実績期間</span
+          ><span><i class="swatch gold"></i>イナズマ線</span
+          ><span>点線＝基準日 · 行やバーをクリックして編集</span>
+        </div>
+      </section>
+      <p id="note"></p>
+      <footer>
+        <span>計画データは端末内に保存 · アカウント不要 · 暦日で計算</span>
+        <div>
+          <button id="loadSample">講演会サンプル</button>　/　<button id="helpButton">
+            使い方・計算のルール
+          </button>
+        </div>
+      </footer>
+    </main>
+    <dialog id="dialog">
+      <div class="dialoghead">
+        <h2 id="dialogTitle">タスクを編集</h2>
+        <button id="closeDialog" aria-label="閉じる">✕</button>
+      </div>
+      <form id="taskForm">
+        <div class="fields">
+          <label>ID<input id="f_id" required maxlength="40" /></label
+          ><label
+            >担当者<input
+              id="f_owner"
+              maxlength="100"
+              list="ownerCandidates"
+              placeholder="候補から選択、または新しい名前を入力"
+              autocomplete="off"
+            /><datalist id="ownerCandidates"></datalist
+            ><small class="muted"
+              >入力した担当者は、このプロジェクトの候補に残ります。</small
+            ></label
+          ><label class="wide">タスク名<input id="f_name" required maxlength="200" /></label
+          ><label>計画開始日<input type="date" id="f_start" required /></label
+          ><label>計画終了日<input type="date" id="f_end" required /></label
+          ><label
+            >進捗率（%）<input type="number" id="f_progress" min="0" max="100" required /></label
+          ><label
+            >先行完了後の待ち日数<input
+              type="number"
+              id="f_lag"
+              min="0"
+              max="365"
+              step="1"
+              required /></label
+          ><label class="inline wide"
+            ><input
+              type="checkbox"
+              id="f_milestone"
+            />マイルストーン（期間0日・開始日を使用）</label
+          ><label>実績開始日<input type="date" id="f_actualStart" /></label
+          ><label>実績終了日<input type="date" id="f_actualEnd" /></label
+          ><label class="wide"
+            >先行タスク（終了→開始）
+            <div id="f_deps"></div></label
+          ><label class="wide"
+            >メモ<textarea id="f_note" rows="2" maxlength="3000"></textarea>
+          </label>
+        </div>
+        <div id="formError" class="error" role="alert"></div>
+        <div class="formactions">
+          <button type="button" id="deleteTask" class="danger">タスクを削除</button
+          ><button type="submit" class="primary">変更を保存</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="helpDialog" class="help">
+      <div class="dialoghead">
+        <h2>使い方・計算のルール</h2>
+        <button id="closeHelp" aria-label="閉じる">✕</button>
+      </div>
+      <h3>1. 計画を作る</h3>
+      <p>
+        タスクを追加し、担当者・期間・先行タスクを指定します。日付は土日祝を含む暦日です。作業時間や稼働率は計算しません。返信待ちや承認待ちも期間として見込んでください。講演会サンプルの日付・依存関係・進捗は例示です。
+      </p>
+      <h3>2. 依存とクリティカルパス</h3>
+      <p>
+        依存は終了→開始（FS）です。通常タスクは終了日の翌日から後続が開始できます。期間0日のマイルストーンは同日から後続を開始できます。待ち日数は各後続タスクの全先行に共通です。
+      </p>
+      <p>
+        現在の開始日を「これより前に着手しない日」として、先行順に最早日を計算し、選択した目標まで逆算して余裕0日のタスクを赤く表示します。目標への先行経路以外の余裕は「—」です。開催日を固定したマイルストーンを目標にすると、開催までの余裕を確認できます。固定日を超える遅延は日程不整合の警告と調整後の日付で確認してください。
+      </p>
+      <p>
+        計算は現在計画を対象とし、進捗率や実績日から残期間を自動予測しません。完了見込みが変わったら計画終了日を更新してください。「日程調整」は依存と矛盾する未着手タスクだけを後ろに移動します。着手済みは手動調整してください。
+      </p>
+      <h3>3. 予実とイナズマ線</h3>
+      <p>
+        計画が決まったら「基準計画を保存」。元の計画が灰色で残り、現在計画・実績期間と比較できます。基準計画は1世代です。更新前のJSONも保存しておくと履歴になります。
+      </p>
+      <p>
+        イナズマ線は基準計画の開始日＋期間×進捗率の位置を結びます。基準計画がなければ現在計画を使用します。基準日より左が遅れ、右が先行の目安です。完了タスクと着手予定日前のタスクは基準日に戻します。進捗率と期間の比率で可視化する簡易方式で、工数を使うEVM計算ではありません。未完了の実績バーは実績開始から基準日までを示します。
+      </p>
+      <h3>4. 保存と共有</h3>
+      <p>
+        編集内容はこのブラウザ内にも自動保存します。共有・バックアップの正本は「JSON保存」で書き出すファイルです。JSONを共有ストレージへ置き、他の人は「JSONを開く」で読み込みます。対応ブラウザでは開いたJSONに上書き保存でき、非対応ブラウザではダウンロードされます。
+      </p>
+      <p>
+        ファイルの同時編集・自動マージはありません。編集担当を交代して使ってください。閲覧だけの人には印刷/PDFが便利です。長い期間は表示を「全体」にして印刷してください。ブラウザデータの削除に備え、JSONを定期保存してください。
+      </p>
+    </dialog>
+    <input type="file" id="fileInput" accept=".json,application/json" hidden />
+    <div id="toast" role="status"></div>
+    <script>
+      /*APP*/
+    </script>
+  </body>
+</html>

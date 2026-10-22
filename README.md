@@ -37,22 +37,38 @@ JSONがプロジェクトの正本です。共有ストレージへ置き、編�
 
 ## 開発
 
-Node.js 18以降。外部パッケージのインストールは不要です。
+Node.js 18以降。開発時は最初に `npm ci` を実行してください。依存パッケージは整形用のPrettierのみで、配布するHTMLの実行時には不要です。
 
 ```sh
 npm run check
 ```
 
-構文確認、ロジックのテスト、HTMLの生成を実行します。
+書式確認、構文確認、ロジックのテスト、HTMLの生成を実行します。
+
+```sh
+npm run format        # ソース・テンプレート・テストを整形
+npm run format:check  # 書式の確認だけを実行
+```
 
 ```text
 src/app.js          編集・保存・計算・チャート描画
 src/template.html   画面構造とスタイル
 scripts/build.mjs   ソースをHTML1枚にまとめる
 index.html          生成済みアプリ・GitHub Pagesの公開入口
- tests/core.cjs     ロジックの検証
+tests/core.cjs     ロジックの検証
 USAGE.md            利用者向けの説明
 ```
+
+`src/app.js` は次の順に整理しています。
+
+- 日付変換・HTMLエスケープなどの共通処理
+- 依存矢印の経路計算、日程と総余裕の計算
+- JSONの検証と担当者履歴、講演会サンプルの生成
+- `initializeApp()` 内のブラウザ状態、自動保存
+- `render()` から呼ぶ日付軸・バー・矢印・イナズマ線の描画関数
+- タスク編集・JSON保存読込の操作関数と、`bindEvents()` のイベント登録
+
+ブラウザ内の自動保存とJSONファイルへの保存は別の処理です。保存形式・localStorageのキーは互換性を維持しています。
 
 `src/` を編集したら `npm run check` を実行し、生成された `index.html` も一緒にコミットします。
 
