@@ -116,3 +116,62 @@ for (const [from, to, sourceRow, targetRow] of [
 console.log(
   'PASS: dependency routing at equal boundaries, overlapping dates, narrow gaps, reverse row order, right-facing arrowheads, no endpoint-bar intersections',
 );
+
+const { duration, taskFinish, progressDay } = require('../src/app.js');
+const weekendExample = [
+  t('A', '2026-10-21', '2026-10-25'),
+  t('B', '2026-10-26', '2026-10-29', ['A']),
+  t('C', '2026-10-26', '2026-10-30', ['A']),
+  t('D', '2026-11-01', '2026-11-04', ['B', 'C']),
+];
+assert.deepEqual(analyze(weekendExample).slack, { A: 1, B: 2, C: 1, D: 0 });
+const weekdays = analyze(weekendExample, 'all', true);
+assert.deepEqual(weekdays.slack, { A: 0, B: 1, C: 0, D: 0 });
+assert.equal(weekdays.es.D, day('2026-11-02'));
+assert.equal(weekdays.ef.D, day('2026-11-05'));
+assert.deepEqual([...weekdays.criticalDependencies], ['["A","C"]', '["C","D"]']);
+assert.equal(analyze(weekendExample, 'B', true).slack.C, undefined);
+assert.deepEqual([...analyze(weekendExample, 'B', true).criticalDependencies], ['["A","B"]']);
+
+const fridayTask = t('F', '2026-10-23', '2026-10-23');
+const mondayTask = t('N', '2026-10-24', '2026-10-27', ['F']);
+const weekendShift = analyze([fridayTask, mondayTask], 'all', true);
+assert.equal(weekendShift.ef.F, day('2026-10-24'));
+assert.equal(weekendShift.es.N, day('2026-10-26'));
+assert.equal(weekendShift.ef.N, day('2026-10-28'));
+assert.equal(analyze([fridayTask, { ...mondayTask, lag: 1 }], 'all', true).es.N, day('2026-10-27'));
+const weekendMilestone = t('M', '2026-10-25', '2026-10-25', ['F'], { milestone: true });
+assert.equal(analyze([fridayTask, weekendMilestone], 'M', true).es.M, day('2026-10-25'));
+assert.equal(analyze([fridayTask, weekendMilestone], 'M', true).slack.F, 0);
+assert.equal(
+  analyze(
+    [weekendMilestone, { ...fridayTask, deps: [] }, { ...mondayTask, deps: ['M'] }],
+    'all',
+    true,
+  ).es.N,
+  day('2026-10-26'),
+);
+const longTask = t('L', '2026-10-23', '2026-11-06');
+assert.equal(duration(longTask), 15);
+assert.equal(duration(longTask, true), 11);
+assert.equal(taskFinish(day('2026-10-26'), 11, true), day('2026-11-10'));
+assert.equal(duration(t('old', '1969-12-26', '1969-12-29'), true), 2);
+const progressTask = t('P', '2026-10-23', '2026-10-27');
+assert.equal(progressDay(progressTask, 50, true), day('2026-10-26') + 0.5);
+assert.equal(progressDay(progressTask, 50), day('2026-10-25') + 0.5);
+assert.equal(progressDay(progressTask, 100, true), day('2026-10-28'));
+
+const weekdayProject = { ...sample(), excludeWeekends: true };
+assert.equal(validate(JSON.parse(JSON.stringify(weekdayProject))).excludeWeekends, true);
+const oldProject = sample();
+assert.equal(validate(oldProject).excludeWeekends, undefined);
+assert.deepEqual(analyze(oldProject.tasks).slack, analyze(oldProject.tasks, 'all', false).slack);
+assert.throws(() => validate({ ...sample(), excludeWeekends: 'true' }), /設定/);
+assert.throws(
+  () =>
+    validate({ ...sample(), excludeWeekends: true, tasks: [t('W', '2026-10-24', '2026-10-25')] }),
+  /平日を1日以上/,
+);
+console.log(
+  'PASS: weekend exclusion, working-day slack and critical arrows, target scoping, weekend starts, lag, weekend milestones, durations, progress, calendar JSON compatibility',
+);
