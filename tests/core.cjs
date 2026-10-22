@@ -175,3 +175,21 @@ assert.throws(
 console.log(
   'PASS: weekend exclusion, working-day slack and critical arrows, target scoping, weekend starts, lag, weekend milestones, durations, progress, calendar JSON compatibility',
 );
+
+const { defaultTarget } = require('../src/app.js');
+const milestoneTargets = [
+  t('later', '2027-02-01', '2027-02-01', [], { milestone: true }),
+  t('past', '2027-01-01', '2027-01-01', [], { milestone: true }),
+  t('ordinary', '2027-01-05', '2027-01-05'),
+  t('nearest', '2027-01-10', '2027-01-10', [], { milestone: true }),
+  t('sameDate', '2027-01-10', '2027-01-10', [], { milestone: true }),
+];
+assert.equal(defaultTarget(milestoneTargets, '2027-01-04'), 'nearest');
+assert.equal(defaultTarget(milestoneTargets, '2027-01-10'), 'nearest');
+assert.equal(defaultTarget(milestoneTargets, '2027-01-11'), 'later');
+assert.equal(defaultTarget(milestoneTargets, '2027-02-02'), 'all');
+assert.equal(defaultTarget([], '2027-01-01'), 'all');
+assert.equal(defaultTarget([milestoneTargets[2]], '2027-01-01'), 'all');
+console.log(
+  'PASS: nearest upcoming milestone, same-day target, stable ties, no upcoming milestones',
+);

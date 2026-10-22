@@ -326,6 +326,28 @@
         background-image: linear-gradient(to right, #f0f3ed 1px, transparent 1px);
         background-size: 28px 100%;
       }
+      .weekends-excluded {
+        --weekend-shading: linear-gradient(
+          to right,
+          transparent var(--weekday-width),
+          #e9ece9 var(--weekday-width)
+        );
+      }
+      .weekends-excluded .ticks {
+        background-image: var(--weekend-shading);
+        background-size: var(--week-width) 100%;
+        background-position: var(--week-offset) 0;
+      }
+      .weekends-excluded .lane {
+        background-image:
+          linear-gradient(to right, #f0f3ed 1px, transparent 1px), var(--weekend-shading);
+        background-size:
+          var(--day-width) 100%,
+          var(--week-width) 100%;
+        background-position:
+          0 0,
+          var(--week-offset) 0;
+      }
       .bar {
         position: absolute;
         top: 12px;
@@ -816,6 +838,10 @@
         stroke: var(--red);
         stroke-width: 2;
       }
+      input:disabled {
+        background: #f0f2ee;
+        color: #718276;
+      }
     </style>
   </head>
   <body>
@@ -917,7 +943,11 @@
             ></label
           ><label class="wide">タスク名<input id="f_name" required maxlength="200" /></label
           ><label>計画開始日<input type="date" id="f_start" required /></label
-          ><label>計画終了日<input type="date" id="f_end" required /></label
+          ><label
+            >計画終了日<input type="date" id="f_end" required />
+            <small id="milestoneDateHint" class="muted" hidden
+              >マイルストーンは開始日と同じ日です。</small
+            ></label
           ><label
             >進捗率（%）<input type="number" id="f_progress" min="0" max="100" required /></label
           ><label
@@ -969,7 +999,7 @@
         現在の開始日を「これより前に着手しない日」として、先行順に最早日を計算し、選択した目標まで逆算して余裕0日のタスクを赤く表示します。余裕0日同士を待ち日数以外の余裕なくつなぐ依存矢印も赤くなります。目標への先行経路以外の余裕は「—」です。開催日を固定したマイルストーンを目標にすると、開催までの余裕を確認できます。固定日を超える遅延は日程不整合の警告と調整後の日付で確認してください。
       </p>
       <p>
-        計算は現在計画を対象とし、進捗率や実績日から残期間を自動予測しません。完了見込みが変わったら計画終了日を更新してください。「日程調整」は依存と矛盾する未着手タスクだけを後ろに移動します。着手済みは手動調整してください。
+        計算は現在計画を対象とし、進捗率や実績日から残期間を自動予測しません。完了見込みが変わったら計画終了日を更新してください。「日程調整」は依存と矛盾する未着手の通常タスクだけを後ろに移動します。マイルストーンは日付を維持し、依存と矛盾する場合は警告を表示します。着手済みは手動調整してください。マイルストーンの編集では終了日を編集できず、開始日と同じ日付になります。
       </p>
       <h3>3. 予実とイナズマ線</h3>
       <p>

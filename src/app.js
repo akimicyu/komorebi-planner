@@ -79,6 +79,20 @@ function getProgressDay(task, progress, excludeWeekends = false) {
   );
 }
 
+function getDefaultTarget(tasks, statusDate) {
+  let nearestMilestone;
+  for (const task of tasks) {
+    if (
+      task.milestone &&
+      task.start >= statusDate &&
+      (!nearestMilestone || task.start < nearestMilestone.start)
+    ) {
+      nearestMilestone = task;
+    }
+  }
+  return nearestMilestone?.id || 'all';
+}
+
 // 矢印は後続バーの左側へ右向きに入れる。近すぎる場合は行間へ回り込む。
 function getDependencyPoints(sourceX, targetX, sourceRow, targetRow, rowHeight = 64) {
   const sourceY = sourceRow * rowHeight + 26;
@@ -247,6 +261,12 @@ function validateProject(project) {
   if (project.excludeWeekends !== undefined && typeof project.excludeWeekends !== 'boolean') {
     throw Error('土日を除く設定が不正です');
   }
+  if (
+    project.targetSelection !== undefined &&
+    !['auto', 'manual'].includes(project.targetSelection)
+  ) {
+    throw Error('目標の選択方法が不正です');
+  }
   const ids = new Set();
   for (const task of project.tasks) {
     if (typeof task.id !== 'string' || !task.id.trim() || ids.has(task.id)) {
@@ -398,7 +418,6 @@ function createSampleProject() {
         ]),
       ),
     },
-    target: 'T10',
     statusDate: '2026-12-10',
   };
 }
@@ -414,6 +433,7 @@ if (typeof module !== 'undefined') {
     dependencyPoints: getDependencyPoints,
     progressDay: getProgressDay,
     taskFinish: getTaskFinish,
+    defaultTarget: getDefaultTarget,
   };
 }
 // ブラウザ内の状態と操作。Node.jsのテストでは初期化しない。
@@ -476,7 +496,7 @@ function initializeApp() {
     const layout = createChartLayout();
     const rows = project.tasks.map((task) => renderTaskRow(task, analysis, layout)).join('');
     const chart = `
-      <div class="grid" style="width:${layout.leftWidth + layout.chartWidth}px">
+      <div class="grid ${project.excludeWeekends ? 'weekends-excluded' : ''}" style="width:${layout.leftWidth + layout.chartWidth}px;--day-width:${layout.pixelsPerDay}px;--weekday-width:${layout.pixelsPerDay * 5}px;--week-width:${layout.pixelsPerDay * 7}px;--week-offset:${layout.weekOffset}px">
         ${renderTimelineHeader(layout)}
         ${rows}
       </div>
@@ -505,16 +525,26 @@ function initializeApp() {
       ? '平日で計算（土日を除く・祝日は含む）'
       : '暦日で計算';
 
-    const target = project.tasks.some((task) => task.id === project.target)
-      ? project.target
-      : 'all';
+    // 従来の具体的な目標は引き継ぎ、未指定・従来の初期値は自動選択する。
+    if (!project.targetSelection) {
+      project.targetSelection = project.target && project.target !== 'all' ? 'manual' : 'auto';
+    }
+    const hasValidTarget =
+      project.target === 'all' || project.tasks.some((task) => task.id === project.target);
+    if (!hasValidTarget) {
+      project.targetSelection = 'auto';
+    }
+    const target =
+      project.targetSelection === 'manual'
+        ? project.target
+        : getDefaultTarget(project.tasks, $('statusDate').value);
     project.target = target;
     $('target').innerHTML =
       '<option value="all">プロジェクト全体</option>' +
       project.tasks
         .map(
           (task) =>
-            `<option value="${escapeHtml(task.id)}">${escapeHtml(task.id + ' ' + task.name)}</option>`,
+            `<option value="${escapeHtml(task.id)}">${escapeHtml(task.id + ' ' + task.name)}${task.milestone ? ' ◆' : ''}</option>`,
         )
         .join('');
     $('target').value = target;
@@ -571,6 +601,7 @@ function initializeApp() {
       leftWidth,
       rowHeight,
       pixelsPerDay,
+      weekOffset: -((new Date(firstDay * MILLISECONDS_PER_DAY).getUTCDay() + 6) % 7) * pixelsPerDay,
       chartWidth: dayCount * pixelsPerDay,
       chartHeight: project.tasks.length * rowHeight,
       dateToX: (dayNumber) => (dayNumber - firstDay) * pixelsPerDay,
@@ -801,6 +832,7 @@ function initializeApp() {
       $('f_' + key).value = task[key] ?? '';
     }
     $('f_milestone').checked = !!task.milestone;
+    synchronizeMilestoneDates();
     $('f_deps').innerHTML =
       project.tasks
         .filter((x) => x.id !== id)
@@ -813,6 +845,15 @@ function initializeApp() {
     $('dialogTitle').textContent = id ? 'タスクを編集' : 'タスクを追加';
     $('formError').textContent = '';
     $('dialog').showModal();
+  }
+
+  function synchronizeMilestoneDates() {
+    const isMilestone = $('f_milestone').checked;
+    $('f_end').disabled = isMilestone;
+    $('milestoneDateHint').hidden = !isMilestone;
+    if (isMilestone) {
+      $('f_end').value = $('f_start').value;
+    }
   }
 
   function saveTaskFromForm(event) {
@@ -922,22 +963,25 @@ function initializeApp() {
     const analysis = analyzeSchedule(project.tasks, 'all', project.excludeWeekends);
     const changed = project.tasks.filter(
       (task) =>
-        analysis.es[task.id] > toDayNumber(task.start) && task.progress === 0 && !task.actualStart,
+        !task.milestone &&
+        analysis.es[task.id] > toDayNumber(task.start) &&
+        task.progress === 0 &&
+        !task.actualStart,
     );
     if (!changed.length) {
-      toast('後ろに移動する未着手タスクはありません');
+      toast('後ろに移動する未着手の通常タスクはありません。マイルストーンは移動しません');
       return;
     }
     if (
       !confirm(
-        `${changed.length}件の未着手タスクを、先行タスクの完了後へ移動します。着手済みのタスクは動かしません。実行しますか？`,
+        `${changed.length}件の未着手タスクを、先行タスクの完了後へ移動します。マイルストーンと着手済みのタスクは動かしません。実行しますか？`,
       )
     ) {
       return;
     }
     for (const task of changed) {
       task.start = toDateString(analysis.es[task.id]);
-      task.end = toDateString(task.milestone ? analysis.es[task.id] : analysis.ef[task.id] - 1);
+      task.end = toDateString(analysis.ef[task.id] - 1);
     }
     persist();
     toast('依存関係に合わせて日程を更新しました');
@@ -1065,6 +1109,9 @@ function initializeApp() {
   // DOMイベントの登録はここに集約する。
   function bindEvents() {
     $('taskForm').onsubmit = saveTaskFromForm;
+    $('f_milestone').onchange = synchronizeMilestoneDates;
+    $('f_start').oninput = synchronizeMilestoneDates;
+    $('f_start').onchange = synchronizeMilestoneDates;
     $('deleteTask').onclick = deleteSelectedTask;
     $('expandChart').onclick = toggleChartExpansion;
     window.addEventListener('keydown', (event) => {
@@ -1097,6 +1144,7 @@ function initializeApp() {
     };
     $('target').onchange = (event) => {
       project.target = event.target.value;
+      project.targetSelection = 'manual';
       persist();
     };
     $('excludeWeekends').onchange = changeWorkingCalendar;
