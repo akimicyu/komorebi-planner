@@ -6,7 +6,14 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node tests/core.cjs",
-    "check": "node --check src/app.js && npm test && npm run build"
+    "check": "npm run format:check && node --check src/app.js && npm test && npm run build",
+    "format": "prettier --write src scripts tests package.json .prettierrc.json",
+    "format:check": "prettier --check src scripts tests package.json .prettierrc.json"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
+  }
 }
