@@ -1,0 +1,12 @@
+{
+  "name": "komorebi-planner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "こもれび計画 — 小さなチームのためのローカルファーストなガントチャート",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node tests/core.cjs",
+    "check": "node --check src/app.js && npm test && npm run build"
+  },
+  "engines": { "node": ">=18" }
+}
