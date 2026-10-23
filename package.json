@@ -5,10 +5,10 @@
   "description": "こもれび計画 — 小さなチームのためのローカルファーストなガントチャート",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/core.cjs && node tests/ui.cjs",
+    "test": "node tests/core.cjs && node tests/ui.cjs && node tests/help.mjs",
     "check": "npm run format:check && node --check src/app.js && npm test && npm run build",
-    "format": "prettier --write src scripts tests package.json .prettierrc.json",
-    "format:check": "prettier --check src scripts tests package.json .prettierrc.json"
+    "format": "prettier --write src scripts tests USAGE.md package.json .prettierrc.json",
+    "format:check": "prettier --check src scripts tests USAGE.md package.json .prettierrc.json"
   },
   "engines": {
     "node": ">=18"

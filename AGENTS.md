@@ -1,10 +1,11 @@
 # こもれび計画
 
-- Edit src/app.js and src/template.html. index.html is generated; run npm run build and commit the generated index.html with source changes.
-- Run npm ci once to install the dev-only formatter. npm run format formats source, templates and tests; npm run check verifies formatting, syntax, scheduling logic, and generates the standalone HTML. No runtime dependencies are added to the HTML.
-- Keep JavaScript readable: descriptive names, one statement per line, braces for control flow, and small functions grouped by responsibility. Keep DOM event registration in bindEvents(). Do not manually compress source or generated HTML.
-- Keep the app usable by opening index.html directly without a server or network dependencies.
-- Preserve backwards compatibility with version 1 project JSON, including files without owners.
-- Project data stays in the browser or files explicitly opened/saved by the user. Do not add telemetry, remote APIs, external libraries loaded at runtime, or uploads without explicit user authorization.
-- Never commit user project JSON, browser storage, screenshots, authentication data, or local backups. Only fictional sample data belongs in source control.
-- GitHub Pages publishes index.html from the root of main. Always include generated output when updating the application.
+- アプリのコードと画面は `src/app.js` と `src/template.html` を編集してください。`index.html` は生成ファイルです。`npm run build` を実行し、生成された `index.html` もソースの変更と一緒にコミットしてください。
+- 一般ユーザー向けの説明は `USAGE.md` だけで管理してください。ビルド時に `src/template.html` の `<!--USAGE-->` へ埋め込まれ、アプリ内ヘルプになります。`README.md` は概要と開発者向けの説明に使い、詳しい使い方や計算ルールを重複して記載しないでください。
+- 最初に一度 `npm ci` を実行し、開発時のみ使うフォーマッターをインストールしてください。`npm run format` はソース・テンプレート・テスト・利用説明を整形します。`npm run check` は書式・構文・スケジューリングのロジックを検証し、単独で動作するHTMLを生成します。HTMLに実行時の依存関係は追加しません。
+- JavaScriptの読みやすさを保ってください。意味の分かる名前を使い、1行に1文を書き、制御構文には波括弧を付け、責務ごとに小さな関数をまとめてください。DOMイベントの登録は `bindEvents()` に集約してください。ソースや生成されたHTMLを手作業で圧縮しないでください。
+- サーバーやネットワークへの依存なしに、`index.html` を直接開いて使える状態を維持してください。
+- `owners` がないファイルも含め、バージョン1のプロジェクトJSONとの後方互換性を維持してください。
+- プロジェクトデータは、ブラウザ内、またはユーザーが明示的に開いたり保存したりするファイル内に保持してください。ユーザーの明示的な許可なしに、テレメトリー・リモートAPI・実行時に読み込む外部ライブラリ・アップロード機能を追加しないでください。
+- ユーザーのプロジェクトJSON・ブラウザの保存データ・スクリーンショット・認証情報・ローカルバックアップは決してコミットしないでください。ソース管理に含めてよいデータは、架空のサンプルデータだけです。
+- GitHub Pagesは `main` ブランチのルートにある `index.html` を公開します。アプリを更新するときは、必ず生成ファイルも含めてください。
