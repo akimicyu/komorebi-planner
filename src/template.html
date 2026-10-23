@@ -256,8 +256,38 @@
         font-size: 11px;
       }
       .tasktext {
-        padding: 0 16px;
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        padding: 0 12px 0 8px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        text-align: left;
         overflow: hidden;
+      }
+      .task-name {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        min-width: 0;
+      }
+      .task-moves {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-left: 8px;
+      }
+      .task-moves button {
+        padding: 3px 5px;
+        min-height: 25px;
+        font-size: 10px;
+        white-space: nowrap;
+      }
+      .task-moves button:disabled {
+        color: #a4ada5;
+        background: #f5f6f2;
+        cursor: default;
       }
       .tasktext small {
         font-size: 10px;
@@ -841,6 +871,11 @@
       input:disabled {
         background: #f0f2ee;
         color: #718276;
+      }
+      @media print {
+        .task-moves {
+          display: none;
+        }
       }
     </style>
   </head>
