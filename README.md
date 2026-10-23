@@ -65,6 +65,8 @@ USAGE.md            利用者向け説明の正本
 
 ## 公開
 
-GitHub Pagesの公開元は `main` ブランチのルート `/` です。ビルド済みのHTMLをコミットするため、独自のGitHub Actionsやサーバー設定は不要です。`main` にpushするとGitHub Pagesへ反映されます。
+通常の開発は `develop` ブランチで行います。変更後は `npm run check` を実行し、生成された `index.html` も一緒にコミットしてください。`develop` へのpushでは公開サイトは更新されません。
+
+公開するタイミングで `develop` の変更を `main` にマージし、`main` をpushします。GitHub Pagesの公開元は `main` ブランチのルート `/` です。ビルド済みのHTMLをコミットするため、独自のGitHub Actionsやサーバー設定は不要です。
 
 実際のプロジェクトJSON・バックアップ・スクリーンショットはリポジトリへ追加しないでください。必要ならGit管理対象外の `private/` や `backups/` に保存できます。
