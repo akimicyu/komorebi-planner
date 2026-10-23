@@ -1,80 +1,2315 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>こもれび計画 — 小さなチームのガントチャート</title><style>
-:root{--ink:#233c38;--green:#226c57;--paper:#f5f6f2;--line:#e0e6df;--red:#be5c53}*{box-sizing:border-box}body{margin:0;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:var(--paper);font-size:13px}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;background:white;border:1px solid #d7dfd7;border-radius:7px;padding:9px 13px}button:hover{background:#eef4ee}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #82b7a6;outline-offset:2px}.primary{background:var(--green);color:white;border-color:var(--green)}.primary:hover{background:#195440}.brand{display:flex;align-items:center;gap:12px}.logo{display:grid;place-items:center;font-size:24px;background:#e4eee4;border-radius:12px;width:43px;height:43px}.brand strong{font-size:19px;letter-spacing:.04em}.brand small{display:block;color:#7b8b81;margin-top:4px;font-size:11px}header{padding:22px 30px;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:15px}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}main{padding:26px 30px 20px;max-width:2000px;margin:auto}.eyebrow{color:#6c8876;font-size:10px;letter-spacing:.17em;font-weight:700}.projectline{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:16px}#projectName{font-size:25px;font-weight:700;background:transparent;border:0;min-width:0;width:100%;padding:5px 0}#saveState{font-size:11px;color:#718276;white-space:nowrap}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:23px 0}.stat{padding:16px 20px;background:white;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:space-between}.stat span{color:#758277}.stat b{font-size:26px;font-weight:600}.stat.red b{color:var(--red)}.workspace{background:white;border:1px solid var(--line);border-radius:12px;overflow:hidden}.toolbar{padding:15px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line)}.toolbar label{display:flex;align-items:center;gap:7px;font-size:12px}input,select,textarea{background:white;border:1px solid #d7dfd7;border-radius:5px;padding:7px}#target{max-width:235px}.divider{width:1px;background:var(--line);height:25px;margin:0 4px}.toggles{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#fafbf8;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:11px}.toggles label{display:flex;align-items:center;gap:4px}input[type=checkbox]{accent-color:var(--green)}.baselineinfo{margin-left:auto;color:#849087}#scroll{overflow:auto;max-height:65vh;min-height:240px}#chart{position:relative;isolation:isolate}.grid{display:grid;grid-template-columns:650px auto}.head{height:62px;background:#f8faf6;border-bottom:1px solid var(--line);font-size:11px;z-index:5}.left{position:sticky;left:0;z-index:4;background:white;display:grid;grid-template-columns:330px 170px 70px 80px;align-items:center;text-align:left}.head.left{background:#f8faf6;z-index:8;padding-left:18px}.head.left span:first-child{grid-column:1}.task{height:54px;border:0;border-radius:0;border-bottom:1px solid #e9ede7;padding:0;font-size:11px}.tasktext{padding:0 16px;overflow:hidden}.tasktext small{font-size:10px;color:#8a968c;display:block;margin-bottom:3px}.tasktext strong{font-size:12px;font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.iscritical{box-shadow:inset 3px 0 var(--red)}.period{font-variant-numeric:tabular-nums;color:#687b70}.warning{color:#bb6748;display:block;font-size:9px}.pct{color:var(--green);font-weight:600}.slack{color:#8b958b}.timeline{position:relative;overflow:hidden}.months,.ticks{position:absolute;width:100%;height:31px;left:0;top:0}.ticks{top:31px;border-top:1px solid #e6ebe3}.months span,.ticks span{position:absolute;font-size:10px;padding:8px;border-left:1px solid #e6ebe3;white-space:nowrap}.months span{font-weight:600}.lane{position:relative;height:54px;border-bottom:1px solid #e9ede7;background-image:linear-gradient(to right,#f0f3ed 1px,transparent 1px);background-size:28px 100%}.bar{position:absolute;top:12px;height:19px;padding:0;border:0;border-radius:4px;background:#c2d9cd;overflow:hidden;z-index:2;min-width:0}.bar:hover{filter:brightness(.95)}.bar i{height:100%;background:#438d73;display:block}.bar.critical{background:#eac5be}.bar.critical i{background:#be685a}.bar.milestone{width:12px!important;height:12px;top:16px;border-radius:1px;transform:translateX(-6px) rotate(45deg);background:#4f7f6b}.bar.milestone.critical{background:var(--red)}.base{position:absolute;top:35px;height:4px;background:#b9c1c6;border-radius:2px}.actual{position:absolute;top:42px;height:4px;background:#4b83ac;border-radius:2px}.overlaywrap{position:absolute;pointer-events:none;z-index:3;overflow:hidden}.overlay{overflow:hidden}.dependency{stroke:#91a0af;stroke-width:1;fill:none;opacity:.8}.todayline{stroke:#778e80;stroke-width:1;stroke-dasharray:4 4}.lightning{stroke:#d69b30;stroke-width:2;fill:none;stroke-linejoin:round}.legend{display:flex;gap:18px;align-items:center;padding:14px 18px;font-size:11px;border-top:1px solid var(--line);flex-wrap:wrap;color:#738177}.legend span{display:flex;gap:6px;align-items:center}.swatch{width:18px;height:5px;border-radius:2px;background:#438d73}.swatch.red{background:var(--red)}.swatch.gray{background:#b9c1c6}.swatch.blue{background:#4b83ac}.swatch.gold{background:#d69b30}#note{color:#859185;font-size:11px;line-height:1.8;margin:13px 2px}footer{display:flex;justify-content:space-between;color:#899389;font-size:11px;gap:10px;margin-top:18px}footer button{padding:3px 0;border:0;background:transparent;color:#607e6e}.empty{padding:80px;text-align:center;color:#899389}dialog{border:1px solid var(--line);border-radius:14px;width:min(710px,94vw);padding:25px;box-shadow:0 25px 90px #19382e33;max-height:90vh;color:var(--ink)}dialog::backdrop{background:#203d3655;backdrop-filter:blur(2px)}.dialoghead{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.dialoghead h2{margin:0;font-size:20px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.fields>label{display:flex;flex-direction:column;gap:6px;font-size:12px}.fields .wide{grid-column:1/-1}.fields .inline{flex-direction:row;align-items:center}#f_deps{max-height:135px;overflow:auto;border:1px solid var(--line);border-radius:6px;padding:8px}.depoption{display:flex;gap:6px;align-items:center;padding:4px;font-size:11px}.formactions{display:flex;justify-content:space-between;align-items:center;margin-top:20px}.danger{color:#b6534b}.error{color:#b6534b;font-size:12px;min-height:18px;margin-top:10px}.muted{color:#819082}.help{line-height:1.9}.help h3{font-size:14px;margin:18px 0 4px}.help p{margin:5px 0;font-size:12px}#toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%) translateY(20px);background:#254b3e;color:white;padding:13px 22px;border-radius:8px;box-shadow:0 4px 30px #132d3322;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:90vw}#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}@media(max-width:800px){header{padding:15px;align-items:flex-start;flex-direction:column}main{padding:20px 12px}.stats{gap:6px}.stat{padding:12px 9px;flex-direction:column;align-items:flex-start;gap:5px}.stat span{font-size:10px}.projectline{flex-direction:column;align-items:flex-start}#projectName{font-size:20px}.toolbar{padding:12px}.divider{display:none}.baselineinfo{margin-left:0}.fields{grid-template-columns:1fr}.fields .wide{grid-column:1}.actions button{padding:8px 10px}}@media print{@page{size:A3 landscape;margin:12mm}body{background:white}header,.toolbar,.toggles,footer,#note,#saveState{display:none}main{padding:0}.stats{margin:10px 0}.stat{padding:8px}.stat b{font-size:18px}.workspace{overflow:visible;border:0}#scroll{overflow:visible;max-height:none}#chart{zoom:.55}.left{position:static}.legend{padding:8px}button{-webkit-print-color-adjust:exact;print-color-adjust:exact}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>こもれび計画 — 小さなチームのガントチャート</title>
+    <style>
+      :root {
+        --ink: #233c38;
+        --green: #226c57;
+        --paper: #f5f6f2;
+        --line: #e0e6df;
+        --red: #be5c53;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+        background: var(--paper);
+        font-size: 13px;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+        background: white;
+        border: 1px solid #d7dfd7;
+        border-radius: 7px;
+        padding: 9px 13px;
+      }
+      button:hover {
+        background: #eef4ee;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 3px solid #82b7a6;
+        outline-offset: 2px;
+      }
+      .primary {
+        background: var(--green);
+        color: white;
+        border-color: var(--green);
+      }
+      .primary:hover {
+        background: #195440;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo {
+        display: grid;
+        place-items: center;
+        font-size: 24px;
+        background: #e4eee4;
+        border-radius: 12px;
+        width: 43px;
+        height: 43px;
+      }
+      .brand strong {
+        font-size: 19px;
+        letter-spacing: 0.04em;
+      }
+      .brand small {
+        display: block;
+        color: #7b8b81;
+        margin-top: 4px;
+        font-size: 11px;
+      }
+      header {
+        padding: 22px 30px;
+        background: #fff;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      main {
+        padding: 26px 30px 20px;
+        max-width: 2000px;
+        margin: auto;
+      }
+      .eyebrow {
+        color: #6c8876;
+        font-size: 10px;
+        letter-spacing: 0.17em;
+        font-weight: 700;
+      }
+      .projectline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 8px;
+        gap: 16px;
+      }
+      #projectName {
+        font-size: 25px;
+        font-weight: 700;
+        background: transparent;
+        border: 0;
+        min-width: 0;
+        width: 100%;
+        padding: 5px 0;
+      }
+      #saveState {
+        font-size: 11px;
+        color: #718276;
+        white-space: nowrap;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 13px;
+        margin: 23px 0;
+      }
+      .stat {
+        padding: 16px 20px;
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .stat span {
+        color: #758277;
+      }
+      .stat b {
+        font-size: 26px;
+        font-weight: 600;
+      }
+      .stat.red b {
+        color: var(--red);
+      }
+      .workspace {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .toolbar {
+        padding: 15px 18px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--line);
+      }
+      .toolbar label {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+      }
+      input,
+      select,
+      textarea {
+        background: white;
+        border: 1px solid #d7dfd7;
+        border-radius: 5px;
+        padding: 7px;
+      }
+      #target {
+        max-width: 235px;
+      }
+      .divider {
+        width: 1px;
+        background: var(--line);
+        height: 25px;
+        margin: 0 4px;
+      }
+      .toggles {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 18px;
+        background: #fafbf8;
+        border-bottom: 1px solid var(--line);
+        flex-wrap: wrap;
+        font-size: 11px;
+      }
+      .toggles label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      input[type='checkbox'] {
+        accent-color: var(--green);
+      }
+      .baselineinfo {
+        margin-left: auto;
+        color: #849087;
+      }
+      #scroll {
+        overflow: auto;
+        max-height: 65vh;
+        min-height: 240px;
+      }
+      #chart {
+        position: relative;
+        isolation: isolate;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 650px auto;
+      }
+      .head {
+        height: 62px;
+        background: #f8faf6;
+        border-bottom: 1px solid var(--line);
+        font-size: 11px;
+        z-index: 5;
+      }
+      .left {
+        position: sticky;
+        left: 0;
+        z-index: 4;
+        background: white;
+        display: grid;
+        grid-template-columns: 330px 170px 70px 80px;
+        align-items: center;
+        text-align: left;
+      }
+      .head.left {
+        background: #f8faf6;
+        z-index: 8;
+        padding-left: 18px;
+      }
+      .head.left span:first-child {
+        grid-column: 1;
+      }
+      .task {
+        height: 54px;
+        border: 0;
+        border-radius: 0;
+        border-bottom: 1px solid #e9ede7;
+        padding: 0;
+        font-size: 11px;
+      }
+      .tasktext {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        padding: 0 12px 0 8px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        text-align: left;
+        overflow: hidden;
+      }
+      .task-name {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        min-width: 0;
+      }
+      .task-moves {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-left: 8px;
+      }
+      .task-moves button {
+        padding: 3px 5px;
+        min-height: 25px;
+        font-size: 10px;
+        white-space: nowrap;
+      }
+      .task-moves button:disabled {
+        color: #a4ada5;
+        background: #f5f6f2;
+        cursor: default;
+      }
+      .tasktext small {
+        font-size: 10px;
+        color: #8a968c;
+        display: block;
+        margin-bottom: 3px;
+      }
+      .tasktext strong {
+        font-size: 12px;
+        font-weight: 500;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .iscritical {
+        box-shadow: inset 3px 0 var(--red);
+      }
+      .period {
+        font-variant-numeric: tabular-nums;
+        color: #687b70;
+      }
+      .warning {
+        color: #bb6748;
+        display: block;
+        font-size: 9px;
+      }
+      .pct {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .slack {
+        color: #8b958b;
+      }
+      .timeline {
+        position: relative;
+        overflow: hidden;
+      }
+      .months,
+      .ticks {
+        position: absolute;
+        width: 100%;
+        height: 31px;
+        left: 0;
+        top: 0;
+      }
+      .ticks {
+        top: 31px;
+        border-top: 1px solid #e6ebe3;
+      }
+      .months span,
+      .ticks span {
+        position: absolute;
+        font-size: 10px;
+        padding: 8px;
+        border-left: 1px solid #e6ebe3;
+        white-space: nowrap;
+      }
+      .months span {
+        font-weight: 600;
+      }
+      .lane {
+        position: relative;
+        height: 54px;
+        border-bottom: 1px solid #e9ede7;
+        background-image: linear-gradient(to right, #f0f3ed 1px, transparent 1px);
+        background-size: 28px 100%;
+      }
+      .weekends-excluded {
+        --weekend-shading: linear-gradient(
+          to right,
+          transparent var(--weekday-width),
+          #e9ece9 var(--weekday-width)
+        );
+      }
+      .weekends-excluded .ticks {
+        background-image: var(--weekend-shading);
+        background-size: var(--week-width) 100%;
+        background-position: var(--week-offset) 0;
+      }
+      .weekends-excluded .lane {
+        background-image:
+          linear-gradient(to right, #f0f3ed 1px, transparent 1px), var(--weekend-shading);
+        background-size:
+          var(--day-width) 100%,
+          var(--week-width) 100%;
+        background-position:
+          0 0,
+          var(--week-offset) 0;
+      }
+      .bar {
+        position: absolute;
+        top: 12px;
+        height: 19px;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        background: #c2d9cd;
+        overflow: hidden;
+        z-index: 2;
+        min-width: 0;
+      }
+      .bar:hover {
+        filter: brightness(0.95);
+      }
+      .bar i {
+        height: 100%;
+        background: #438d73;
+        display: block;
+      }
+      .bar.critical {
+        background: #eac5be;
+      }
+      .bar.critical i {
+        background: #be685a;
+      }
+      .bar.milestone {
+        width: 12px !important;
+        height: 12px;
+        top: 16px;
+        border-radius: 1px;
+        transform: translateX(-6px) rotate(45deg);
+        background: #4f7f6b;
+      }
+      .bar.milestone.critical {
+        background: var(--red);
+      }
+      .base {
+        position: absolute;
+        top: 35px;
+        height: 4px;
+        background: #b9c1c6;
+        border-radius: 2px;
+      }
+      .actual {
+        position: absolute;
+        top: 42px;
+        height: 4px;
+        background: #4b83ac;
+        border-radius: 2px;
+      }
+      .overlaywrap {
+        position: absolute;
+        pointer-events: none;
+        z-index: 3;
+        overflow: hidden;
+      }
+      .overlay {
+        overflow: hidden;
+      }
+      .dependency {
+        stroke: #91a0af;
+        stroke-width: 1;
+        fill: none;
+        opacity: 0.8;
+      }
+      .todayline {
+        stroke: #778e80;
+        stroke-width: 1;
+        stroke-dasharray: 4 4;
+      }
+      .lightning {
+        stroke: #d69b30;
+        stroke-width: 2;
+        fill: none;
+        stroke-linejoin: round;
+      }
+      .legend {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        padding: 14px 18px;
+        font-size: 11px;
+        border-top: 1px solid var(--line);
+        flex-wrap: wrap;
+        color: #738177;
+      }
+      .legend span {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .swatch {
+        width: 18px;
+        height: 5px;
+        border-radius: 2px;
+        background: #438d73;
+      }
+      .swatch.red {
+        background: var(--red);
+      }
+      .swatch.gray {
+        background: #b9c1c6;
+      }
+      .swatch.blue {
+        background: #4b83ac;
+      }
+      .swatch.gold {
+        background: #d69b30;
+      }
+      #note {
+        color: #859185;
+        font-size: 11px;
+        line-height: 1.8;
+        margin: 13px 2px;
+      }
+      footer {
+        display: flex;
+        justify-content: space-between;
+        color: #899389;
+        font-size: 11px;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      footer button {
+        padding: 3px 0;
+        border: 0;
+        background: transparent;
+        color: #607e6e;
+      }
+      .empty {
+        padding: 80px;
+        text-align: center;
+        color: #899389;
+      }
+      dialog {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        width: min(710px, 94vw);
+        padding: 25px;
+        box-shadow: 0 25px 90px #19382e33;
+        max-height: 90vh;
+        color: var(--ink);
+      }
+      dialog::backdrop {
+        background: #203d3655;
+        backdrop-filter: blur(2px);
+      }
+      .dialoghead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+      .dialoghead h2 {
+        margin: 0;
+        font-size: 20px;
+      }
+      .fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .fields > label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 12px;
+      }
+      .fields .wide {
+        grid-column: 1/-1;
+      }
+      .fields .inline {
+        flex-direction: row;
+        align-items: center;
+      }
+      #f_deps {
+        max-height: 135px;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px;
+      }
+      .depoption {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        padding: 4px;
+        font-size: 11px;
+      }
+      .formactions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+      }
+      .danger {
+        color: #b6534b;
+      }
+      .error {
+        color: #b6534b;
+        font-size: 12px;
+        min-height: 18px;
+        margin-top: 10px;
+      }
+      .muted {
+        color: #819082;
+      }
+      .help {
+        line-height: 1.9;
+      }
+      .help h3 {
+        font-size: 14px;
+        margin: 18px 0 4px;
+      }
+      .help p,
+      .help li {
+        margin: 5px 0;
+        font-size: 12px;
+      }
+      .help ul,
+      .help ol {
+        padding-left: 24px;
+      }
+      .help code {
+        padding: 1px 4px;
+        border-radius: 3px;
+        background: #f0f2ee;
+      }
+      #toast {
+        position: fixed;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: #254b3e;
+        color: white;
+        padding: 13px 22px;
+        border-radius: 8px;
+        box-shadow: 0 4px 30px #132d3322;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.2s;
+        z-index: 100;
+        max-width: 90vw;
+      }
+      #toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      @media (max-width: 800px) {
+        header {
+          padding: 15px;
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        main {
+          padding: 20px 12px;
+        }
+        .stats {
+          gap: 6px;
+        }
+        .stat {
+          padding: 12px 9px;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 5px;
+        }
+        .stat span {
+          font-size: 10px;
+        }
+        .projectline {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        #projectName {
+          font-size: 20px;
+        }
+        .toolbar {
+          padding: 12px;
+        }
+        .divider {
+          display: none;
+        }
+        .baselineinfo {
+          margin-left: 0;
+        }
+        .fields {
+          grid-template-columns: 1fr;
+        }
+        .fields .wide {
+          grid-column: 1;
+        }
+        .actions button {
+          padding: 8px 10px;
+        }
+      }
+      @media print {
+        @page {
+          size: A3 landscape;
+          margin: 12mm;
+        }
+        body {
+          background: white;
+        }
+        header,
+        .toolbar,
+        .toggles,
+        footer,
+        #note,
+        #saveState {
+          display: none;
+        }
+        main {
+          padding: 0;
+        }
+        .stats {
+          margin: 10px 0;
+        }
+        .stat {
+          padding: 8px;
+        }
+        .stat b {
+          font-size: 18px;
+        }
+        .workspace {
+          overflow: visible;
+          border: 0;
+        }
+        #scroll {
+          overflow: visible;
+          max-height: none;
+        }
+        #chart {
+          zoom: 0.55;
+        }
+        .left {
+          position: static;
+        }
+        .legend {
+          padding: 8px;
+        }
+        button {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
 
-/* Readable chart layout */
-main{max-width:none}.grid{grid-template-columns:720px auto}.left{grid-template-columns:360px 190px 80px 90px}.head{height:72px;font-size:13px}.task,.lane{height:64px}.task{font-size:14px}.tasktext strong{font-size:14px;font-weight:500}.tasktext small{font-size:12px;color:#64766a}.period{font-size:13px;color:#52695b}.slack{color:#647568}.warning{font-size:11px}.months,.ticks{height:36px}.ticks{top:36px}.months span,.ticks span{font-size:12px;padding:9px 7px}.bar{top:14px;height:25px}.base{top:44px;height:5px}.actual{top:53px;height:5px}.bar.milestone{top:19px;width:16px!important;height:16px}.dependency{stroke-width:1.4;opacity:1}.legend,.toggles{font-size:12px}#scroll{max-height:72vh}.chartfocus{overflow:hidden}.chartfocus .workspace{position:fixed;inset:12px;z-index:50;display:flex;flex-direction:column;box-shadow:0 0 0 20px var(--paper)}.chartfocus #scroll{flex:1;min-height:0;max-height:none}.chartfocus .toolbar,.chartfocus .toggles,.chartfocus .legend{flex-shrink:0}.chartfocus #expandChart{background:#226c57;color:white}.head{position:sticky;top:0}.head.left{z-index:8}.months span{overflow:hidden}#chart .head.timeline{z-index:5}@media print{.chartfocus .workspace{position:static;display:block;box-shadow:none}.chartfocus #scroll{max-height:none;overflow:visible}#chart{zoom:.55}}
-</style></head><body><header><div class="brand"><div class="logo">▥</div><div><strong>こもれび計画</strong><small>小さなチームのためのガントチャート</small></div></div><div class="actions"><button id="newProject">新規</button><button id="openFile">JSONを開く</button><button id="print">印刷 / PDF</button><button id="saveFile" class="primary">↓ JSON保存</button></div></header><main><div class="eyebrow">PROJECT PLANNER / LOCAL EDITION</div><div class="projectline"><input id="projectName" aria-label="プロジェクト名"><span id="saveState">端末内に保存 · 共有するときはJSON保存</span></div><div class="stats"><div class="stat"><span>すべてのタスク</span><b id="count">0</b></div><div class="stat"><span>完了したタスク</span><b id="done">0</b></div><div class="stat red"><span>基準日時点の期限超過</span><b id="late">0</b></div><div class="stat red"><span>余裕0日の未完了タスク</span><b id="criticalCount">0</b></div></div><section class="workspace"><div class="toolbar"><button id="addTask" class="primary">＋ タスク追加</button><div class="divider"></div><label>基準日 <input type="date" id="statusDate"></label><label>目標 <select id="target"></select></label><label>表示 <select id="scale"><option value="0" selected>画面に合わせる</option><option value="5">月</option><option value="10">週</option><option value="24">日</option></select></label><button id="schedule">依存に合わせて日程調整</button><button id="saveBaseline">基準計画を保存</button><button id="expandChart">チャートを広く</button></div><div class="toggles"><label><input type="checkbox" id="v_deps" checked>依存関係</label><label><input type="checkbox" id="v_critical" checked>クリティカルパス</label><label><input type="checkbox" id="v_baseline" checked>基準計画</label><label><input type="checkbox" id="v_actual" checked>実績期間</label><label><input type="checkbox" id="v_lightning" checked>イナズマ線</label><span class="baselineinfo" id="baselineLabel"></span></div><div id="scroll"><div id="chart"></div></div><div class="legend"><span><i class="swatch"></i>現在計画 / 濃色＝進捗</span><span><i class="swatch red"></i>余裕0日</span><span><i class="swatch gray"></i>基準計画</span><span><i class="swatch blue"></i>実績期間</span><span><i class="swatch gold"></i>イナズマ線</span><span>点線＝基準日 · 行やバーをクリックして編集</span></div></section><p id="note"></p><footer><span>計画データは端末内に保存 · アカウント不要 · 暦日で計算</span><div><button id="loadSample">講演会サンプル</button>　/　<button id="helpButton">使い方・計算のルール</button></div></footer></main>
-<dialog id="dialog"><div class="dialoghead"><h2 id="dialogTitle">タスクを編集</h2><button id="closeDialog" aria-label="閉じる">✕</button></div><form id="taskForm"><div class="fields"><label>ID<input id="f_id" required maxlength="40"></label><label>担当者<input id="f_owner" maxlength="100" list="ownerCandidates" placeholder="候補から選択、または新しい名前を入力" autocomplete="off"><datalist id="ownerCandidates"></datalist><small class="muted">入力した担当者は、このプロジェクトの候補に残ります。</small></label><label class="wide">タスク名<input id="f_name" required maxlength="200"></label><label>計画開始日<input type="date" id="f_start" required></label><label>計画終了日<input type="date" id="f_end" required></label><label>進捗率（%）<input type="number" id="f_progress" min="0" max="100" required></label><label>先行完了後の待ち日数<input type="number" id="f_lag" min="0" max="365" step="1" required></label><label class="inline wide"><input type="checkbox" id="f_milestone">マイルストーン（期間0日・開始日を使用）</label><label>実績開始日<input type="date" id="f_actualStart"></label><label>実績終了日<input type="date" id="f_actualEnd"></label><label class="wide">先行タスク（終了→開始）<div id="f_deps"></div></label><label class="wide">メモ<textarea id="f_note" rows="2" maxlength="3000"></textarea></label></div><div id="formError" class="error" role="alert"></div><div class="formactions"><button type="button" id="deleteTask" class="danger">タスクを削除</button><button type="submit" class="primary">変更を保存</button></div></form></dialog>
-<dialog id="helpDialog" class="help"><div class="dialoghead"><h2>使い方・計算のルール</h2><button id="closeHelp" aria-label="閉じる">✕</button></div><h3>1. 計画を作る</h3><p>タスクを追加し、担当者・期間・先行タスクを指定します。日付は土日祝を含む暦日です。作業時間や稼働率は計算しません。返信待ちや承認待ちも期間として見込んでください。講演会サンプルの日付・依存関係・進捗は例示です。</p><h3>2. 依存とクリティカルパス</h3><p>依存は終了→開始（FS）です。通常タスクは終了日の翌日から後続が開始できます。期間0日のマイルストーンは同日から後続を開始できます。待ち日数は各後続タスクの全先行に共通です。</p><p>現在の開始日を「これより前に着手しない日」として、先行順に最早日を計算し、選択した目標まで逆算して余裕0日のタスクを赤く表示します。目標への先行経路以外の余裕は「—」です。開催日を固定したマイルストーンを目標にすると、開催までの余裕を確認できます。固定日を超える遅延は日程不整合の警告と調整後の日付で確認してください。</p><p>計算は現在計画を対象とし、進捗率や実績日から残期間を自動予測しません。完了見込みが変わったら計画終了日を更新してください。「日程調整」は依存と矛盾する未着手タスクだけを後ろに移動します。着手済みは手動調整してください。</p><h3>3. 予実とイナズマ線</h3><p>計画が決まったら「基準計画を保存」。元の計画が灰色で残り、現在計画・実績期間と比較できます。基準計画は1世代です。更新前のJSONも保存しておくと履歴になります。</p><p>イナズマ線は基準計画の開始日＋期間×進捗率の位置を結びます。基準計画がなければ現在計画を使用します。基準日より左が遅れ、右が先行の目安です。完了タスクと着手予定日前のタスクは基準日に戻します。進捗率と期間の比率で可視化する簡易方式で、工数を使うEVM計算ではありません。未完了の実績バーは実績開始から基準日までを示します。</p><h3>4. 保存と共有</h3><p>編集内容はこのブラウザ内にも自動保存します。共有・バックアップの正本は「JSON保存」で書き出すファイルです。JSONを共有ストレージへ置き、他の人は「JSONを開く」で読み込みます。対応ブラウザでは開いたJSONに上書き保存でき、非対応ブラウザではダウンロードされます。</p><p>ファイルの同時編集・自動マージはありません。編集担当を交代して使ってください。閲覧だけの人には印刷/PDFが便利です。長い期間は表示を「全体」にして印刷してください。ブラウザデータの削除に備え、JSONを定期保存してください。</p></dialog><input type="file" id="fileInput" accept=".json,application/json" hidden><div id="toast" role="status"></div><script>
-'use strict';
-const DAY=86400000, day=s=>Math.round(Date.parse(s+'T00:00:00Z')/DAY), date=n=>new Date(n*DAY).toISOString().slice(0,10), today=()=>{let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}, esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const duration=t=>t.milestone?0:day(t.end)-day(t.start)+1;
-function analyze(tasks,target='all'){
- const map=new Map(tasks.map(t=>[t.id,t])),order=[],seen=new Set(),active=new Set();
- function visit(t){if(active.has(t.id))throw Error('依存関係が循環しています：'+t.name);if(seen.has(t.id))return;active.add(t.id);for(const p of t.deps){if(!map.has(p))throw Error('存在しない先行ID：'+p);visit(map.get(p));}active.delete(t.id);seen.add(t.id);order.push(t);}
- tasks.forEach(visit);
- const es={},ef={},ls={},lf={},relevant=new Set();
- function collect(id){if(relevant.has(id))return;relevant.add(id);map.get(id).deps.forEach(collect);}
- if(target!=='all'&&map.has(target))collect(target);else tasks.forEach(t=>relevant.add(t.id));
- for(const t of order){es[t.id]=Math.max(day(t.start),...t.deps.map(p=>ef[p]+(t.lag||0)));ef[t.id]=es[t.id]+duration(t);}
- const finish=relevant.size?Math.max(...[...relevant].map(id=>ef[id])):day(today());
- for(const t of [...order].reverse()){if(!relevant.has(t.id))continue;const next=tasks.filter(x=>relevant.has(x.id)&&x.deps.includes(t.id));lf[t.id]=next.length?Math.min(...next.map(x=>ls[x.id]-(x.lag||0))):finish;ls[t.id]=lf[t.id]-duration(t);}
- const slack={};for(const id of relevant)slack[id]=ls[id]-es[id];return {order,es,ef,slack,relevant,finish};
-}
-function rememberOwners(p){
- p.owners=[...new Set([...(p.owners||[]),...p.tasks.map(t=>t.owner)].filter(n=>typeof n==='string').map(n=>n.trim()).filter(Boolean))];
- return p;
-}
-function validate(p){
- if(!p||p.version!==1||typeof p.name!=='string'||!Array.isArray(p.tasks))throw Error('このツールのJSONファイルを選んでください');
- if(p.owners!==undefined&&(!Array.isArray(p.owners)||p.owners.length>5000||!p.owners.every(n=>typeof n==='string'&&n.length<=100)))throw Error('担当者リストが不正です');
- if(p.tasks.length>500)throw Error('タスクは500件までです');
- const ids=new Set();for(const t of p.tasks){if(typeof t.id!=='string'||!t.id.trim()||ids.has(t.id))throw Error('タスクIDは重複しない文字列にしてください');ids.add(t.id);if(typeof t.name!=='string'||!t.name.trim())throw Error('タスク名が必要です');for(const k of ['start','end'])if(!/^\d{4}-\d{2}-\d{2}$/.test(t[k])||!Number.isFinite(day(t[k]))||date(day(t[k]))!==t[k])throw Error('日付を確認してください');if(day(t.end)<day(t.start))throw Error('終了日は開始日以降にしてください');if(t.milestone&&t.start!==t.end)throw Error('マイルストーンは開始日と終了日を同じにしてください');if(!Array.isArray(t.deps)||!t.deps.every(x=>typeof x==='string')||new Set(t.deps).size!==t.deps.length)throw Error('先行IDを確認してください');if(!Number.isFinite(t.progress)||t.progress<0||t.progress>100)throw Error('進捗は0〜100%です');if(!Number.isInteger(t.lag)||t.lag<0||t.lag>365)throw Error('待ち日数は0〜365日です');for(const k of ['actualStart','actualEnd'])if(t[k]&&(!/^\d{4}-\d{2}-\d{2}$/.test(t[k])||!Number.isFinite(day(t[k]))||date(day(t[k]))!==t[k]))throw Error('実績日を確認してください');if(t.actualEnd&&!t.actualStart)throw Error('実績終了日には実績開始日も必要です');if(t.actualEnd&&t.actualEnd<t.actualStart)throw Error('実績終了日は実績開始日以降です');if(t.actualEnd&&t.progress!==100)throw Error('実績終了日を入れる場合は進捗を100%にしてください');}
- if(p.statusDate&&(!/^\d{4}-\d{2}-\d{2}$/.test(p.statusDate)||!Number.isFinite(day(p.statusDate))||date(day(p.statusDate))!==p.statusDate))throw Error('基準日が不正です');if(p.tasks.length&&Math.max(...p.tasks.map(t=>day(t.end)))-Math.min(...p.tasks.map(t=>day(t.start)))>3660)throw Error('計画範囲は10年以内にしてください');analyze(p.tasks);if(p.baseline){if(typeof p.baseline!=='object'||!p.baseline.tasks||Array.isArray(p.baseline.tasks))throw Error('基準計画が不正です');for(const b of Object.values(p.baseline.tasks)){if(!b||!Number.isFinite(day(b.start))||!Number.isFinite(day(b.end))||day(b.end)<day(b.start))throw Error('基準計画の日付が不正です');}}return rememberOwners(p);
-}
-function sample(){const rows=[['T01','実行委員会キックオフ・全体方針策定','2026-11-01','2026-11-15','担当A',[],100],['T02','開催要項・予算案策定','2026-11-16','2026-12-15','担当B',['T01'],60],['T03','会場選定・設備確認・仮予約','2026-12-01','2026-12-28','担当C',['T01'],30],['T04','特別講演講師・来賓への登壇依頼','2027-01-05','2027-01-31','担当D',['T02','T03'],0],['T05','案内状送付・参加受付開始','2027-02-01','2027-02-28','担当E',['T04'],0],['T06','記念品・ノベルティの手配','2027-02-15','2027-03-15','担当F',['T02'],0],['T07','参加者名簿確定・参加費集計','2027-03-16','2027-04-10','担当G',['T05'],0],['T08','当日配布資料・パンフレット印刷','2027-04-01','2027-04-25','担当H',['T04'],0],['T09','進行台本策定・司会リハーサル','2027-04-26','2027-05-10','担当I',['T08'],0],['T10','合格祝賀CPD 開催','2027-05-16','2027-05-16','全員',['T06','T07','T09'],0],['T11','終了報告・アンケート集計','2027-05-17','2027-05-31','担当A',['T10'],0]];const tasks=rows.map(r=>({id:r[0],name:r[1],start:r[2],end:r[3],owner:r[4],deps:r[5],progress:r[6],lag:0,milestone:r[0]==='T10',actualStart:r[0]==='T01'?'2026-11-01':r[0]==='T02'?'2026-11-18':r[0]==='T03'?'2026-12-03':'',actualEnd:r[0]==='T01'?'2026-11-15':'',note:''}));return {version:1,name:'講演会準備（サンプル）',tasks,owners:[...new Set(tasks.map(t=>t.owner))],baseline:{savedAt:'2026-11-01',tasks:Object.fromEntries(tasks.map(t=>[t.id,{start:t.start,end:t.end,milestone:t.milestone}]))},target:'T10',statusDate:'2026-12-10'};}
-if(typeof module!=='undefined')module.exports={day,date,duration,analyze,validate,sample,rememberOwners};
-if(typeof document!=='undefined'){
- const $=id=>document.getElementById(id), KEY='komorebi-gantt-v1';let p,dirty=false,editing=null,fileHandle=null;let view={scale:0,baseline:true,actual:true,lightning:true,deps:true,critical:true};
- try{p=validate(JSON.parse(localStorage.getItem(KEY)));}catch{p=sample();}
- function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').classList.remove('show'),4500);}
- function persist(){rememberOwners(p);dirty=true;try{localStorage.setItem(KEY,JSON.stringify(p));$('saveState').textContent='端末に自動保存済み · JSON保存で共有';}catch{$('saveState').textContent='端末保存できません · JSONを保存してください';}render();}
- function render(){
- rememberOwners(p);$('ownerCandidates').innerHTML=p.owners.map(n=>`<option value="${esc(n)}"></option>`).join('');
- $('projectName').value=p.name;$('statusDate').value=p.statusDate||today();const target=p.tasks.some(t=>t.id===p.target)?p.target:'all';p.target=target;let a;try{a=analyze(p.tasks,target);}catch(e){toast(e.message);return;}
- $('target').innerHTML='<option value="all">プロジェクト全体</option>'+p.tasks.map(t=>`<option value="${esc(t.id)}">${esc(t.id+' '+t.name)}</option>`).join('');$('target').value=target;
- const incomplete=p.tasks.filter(t=>t.progress<100),late=incomplete.filter(t=>day(t.end)<day($('statusDate').value)),critical=p.tasks.filter(t=>a.slack[t.id]===0);
- $('count').textContent=p.tasks.length;$('done').textContent=p.tasks.filter(t=>t.progress===100).length;$('late').textContent=late.length;$('criticalCount').textContent=critical.filter(t=>t.progress<100).length;
- $('baselineLabel').textContent=p.baseline?'基準計画：'+p.baseline.savedAt:'基準計画：未保存';
- if(!p.tasks.length){$('chart').innerHTML='<div class="empty">タスクを追加して計画を始めましょう。</div>';return;}
- const ref=day($('statusDate').value),allDays=p.tasks.flatMap(t=>[day(t.start),day(t.end),t.actualStart?day(t.actualStart):day(t.start),t.actualEnd?day(t.actualEnd):day(t.end)]);if(p.baseline)Object.values(p.baseline.tasks).forEach(b=>allDays.push(day(b.start),day(b.end)));
- let min=Math.min(...allDays)-7,max=Math.max(...allDays)+14;if(ref>=min-90&&ref<=max+90){min=Math.min(min,ref-3);max=Math.max(max,ref+7);}const leftWidth=720,rowHeight=64,days=max-min+1;const scale=view.scale||Math.max(620,$('scroll').clientWidth-leftWidth)/days,W=days*scale,H=p.tasks.length*rowHeight;const x=n=>(n-min)*scale;
- let ticks='',months='',last='',lastTick=-Infinity;for(let d=min;d<=max;d++){const dt=new Date(d*DAY),m=date(d).slice(0,7);if(m!==last){if(d!==min||new Date(d*DAY).getUTCDate()<10)months+=`<span style="left:${x(d)}px">${dt.getUTCFullYear()}/${String(dt.getUTCMonth()+1).padStart(2,'0')}</span>`;last=m;}if(((scale>=18)||(scale>=7&&dt.getUTCDay()===1)||(scale<7&&[1,16].includes(dt.getUTCDate())))&&x(d)-lastTick>=52){lastTick=x(d);ticks+=`<span style="left:${x(d)}px">${dt.getUTCMonth()+1}/${dt.getUTCDate()}</span>`;}}
- let html=`<div class="grid" style="width:${leftWidth+W}px"><div class="head left"><span>タスク / 担当者</span><span>計画期間</span><span>進捗</span><span>余裕</span></div><div class="head timeline" style="width:${W}px"><div class="months">${months}</div><div class="ticks">${ticks}</div></div>`;
- p.tasks.forEach((t,i)=>{const iscrit=a.slack[t.id]===0,slack=a.slack[t.id],b=p.baseline?.tasks[t.id],warn=a.es[t.id]>day(t.start);html+=`<button class="task left ${iscrit&&view.critical?'iscritical':''}" data-id="${esc(t.id)}"><span class="tasktext"><small>${esc(t.id)} ${t.milestone?'◆':''} · ${esc(t.owner||'担当未設定')}</small><strong>${esc(t.name)}</strong></span><span class="period">${esc(t.start.slice(5))} → ${esc(t.end.slice(5))}${warn?'<small class="warning">先行タスクと日程不整合</small>':''}</span><span class="pct">${t.progress}%</span><span class="slack">${slack===undefined?'—':slack+'日'}</span></button><div class="lane" style="width:${W}px">`;
- if(view.baseline&&b)html+=`<div class="base" style="left:${x(day(b.start))}px;width:${Math.max(4,(b.milestone?0:day(b.end)-day(b.start)+1)*scale)}px" title="基準計画 ${b.start}〜${b.end}"></div>`;
- const width=Math.max(8,duration(t)*scale);html+=`<button class="bar ${t.milestone?'milestone':''} ${iscrit&&view.critical?'critical':''}" data-id="${esc(t.id)}" style="left:${x(day(t.start))}px;width:${width}px" title="${esc(t.name)}：${t.start}〜${t.end}">${!t.milestone?`<i style="width:${t.progress}%"></i>`:''}</button>`;
- if(view.actual&&t.actualStart){const end=t.actualEnd?day(t.actualEnd):Math.max(day(t.actualStart),ref);html+=`<div class="actual" style="left:${x(day(t.actualStart))}px;width:${Math.max(4,(end-day(t.actualStart)+1)*scale)}px" title="実績 ${t.actualStart}〜${t.actualEnd||'基準日まで（未完了）'}"></div>`;}
- html+='</div>';});
- html+='</div>';let paths='',points=[];p.tasks.forEach((t,i)=>{const cy=i*rowHeight+26;if(view.deps)t.deps.forEach(id=>{const j=p.tasks.findIndex(z=>z.id===id),s=p.tasks[j];const from=x(day(s.start)+duration(s)),to=x(day(t.start));paths+=`<path d="M${from},${j*rowHeight+26} H${from+9} V${cy} H${to}" class="dependency" marker-end="url(#arrow)"/>`;});if(view.lightning){const b=p.baseline?.tasks[t.id]||t;let point=ref;if(t.progress<100&&ref>=day(b.start)){point=b.milestone?(t.progress===100?ref:day(b.start)):day(b.start)+(day(b.end)-day(b.start)+1)*t.progress/100; }points.push(`${x(point)},${cy}`);}});
- const svg=`<svg class="overlay" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#8c9bac"/></marker></defs>${paths}${x(ref)>=0&&x(ref)<=W?`<path d="M${x(ref)},0 V${H}" class="todayline"/>`:''}${view.lightning?`<polyline points="${x(ref)},0 ${points.join(' ')} ${x(ref)},${H}" class="lightning"/>`:''}</svg>`;
- $('chart').innerHTML=html+`<div class="overlaywrap" style="left:${leftWidth}px;top:72px;width:${W}px;height:${H}px">${svg}</div>`;
- $('chart').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>openTask(b.dataset.id));
- $('note').textContent=`目標までの余裕：現在の開始日を「これより前に着手しない日」として計算。灰色の余裕「—」は選択目標の対象外。${p.baseline?'イナズマ線は基準計画':'イナズマ線は現在計画'}と進捗率から算出。`;
- }
- function openTask(id=null){editing=id;const t=p.tasks.find(t=>t.id===id)||{id:'T'+String(Math.max(0,...p.tasks.map(t=>Number(t.id.replace(/^T/,''))||0))+1).padStart(2,'0'),name:'',owner:'',start:p.statusDate||today(),end:p.statusDate||today(),progress:0,deps:[],lag:0,milestone:false,actualStart:'',actualEnd:'',note:''};$('taskForm').reset();for(const key of ['id','name','owner','start','end','progress','lag','actualStart','actualEnd','note'])$('f_'+key).value=t[key]??'';$('f_milestone').checked=!!t.milestone;$('f_deps').innerHTML=p.tasks.filter(x=>x.id!==id).map(x=>`<label class="depoption"><input type="checkbox" value="${esc(x.id)}" ${t.deps.includes(x.id)?'checked':''}><span>${esc(x.id+' '+x.name)}</span></label>`).join('')||'<span class="muted">先行タスクはありません</span>';$('deleteTask').hidden=!id;$('dialogTitle').textContent=id?'タスクを編集':'タスクを追加';$('formError').textContent='';$('dialog').showModal();}
- $('taskForm').onsubmit=e=>{e.preventDefault();try{const t={};for(const key of ['id','name','owner','start','end','actualStart','actualEnd','note'])t[key]=$('f_'+key).value.trim();t.progress=Number($('f_progress').value);t.lag=Number($('f_lag').value);t.milestone=$('f_milestone').checked;if(t.milestone)t.end=t.start;t.deps=[...$('f_deps').querySelectorAll('input:checked')].map(x=>x.value);const next=structuredClone(p);if(editing){next.tasks=next.tasks.map(x=>x.id===editing?t:x);if(t.id!==editing){next.tasks.forEach(x=>x.deps=x.deps.map(d=>d===editing?t.id:d));if(next.target===editing)next.target=t.id;if(next.baseline?.tasks[editing]){next.baseline.tasks[t.id]=next.baseline.tasks[editing];delete next.baseline.tasks[editing];}}}else next.tasks.push(t);validate(next);p=next;persist();$('dialog').close();}catch(err){$('formError').textContent=err.message;}};
- $('deleteTask').onclick=()=>{const t=p.tasks.find(t=>t.id===editing),next=p.tasks.filter(t=>t.deps.includes(editing));if(!confirm(`「${t.name}」を削除しますか？${next.length?' 後続タスクの依存関係からも外れます。':''}`))return;p.tasks=p.tasks.filter(t=>t.id!==editing);p.tasks.forEach(t=>t.deps=t.deps.filter(id=>id!==editing));persist();$('dialog').close();};
- $('expandChart').onclick=()=>{const expanded=document.body.classList.toggle('chartfocus');$('expandChart').textContent=expanded?'通常表示に戻す':'チャートを広く';requestAnimationFrame(render);};window.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('chartfocus')&&!$('dialog').open&&!$('helpDialog').open){document.body.classList.remove('chartfocus');$('expandChart').textContent='チャートを広く';render();}});let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(render,100);});
- $('closeDialog').onclick=()=>$('dialog').close();$('addTask').onclick=()=>openTask();$('projectName').onchange=e=>{p.name=e.target.value.trim()||'新しいプロジェクト';persist();};$('statusDate').onchange=e=>{if(e.target.value){p.statusDate=e.target.value;persist();}};$('target').onchange=e=>{p.target=e.target.value;persist();};$('scale').onchange=e=>{view.scale=Number(e.target.value);render();};for(const k of ['baseline','actual','lightning','deps','critical'])$('v_'+k).onchange=e=>{view[k]=e.target.checked;render();};
- $('saveBaseline').onclick=()=>{if(p.baseline&&!confirm('現在の基準計画を置き換えます。古い基準計画を残す場合は、先にJSON保存してください。置き換えますか？'))return;p.baseline={savedAt:today(),tasks:Object.fromEntries(p.tasks.map(t=>[t.id,{start:t.start,end:t.end,milestone:t.milestone}]))};persist();toast('現在の計画を基準計画として保存しました');};
- $('schedule').onclick=()=>{const a=analyze(p.tasks);const changed=p.tasks.filter(t=>a.es[t.id]>day(t.start)&&t.progress===0&&!t.actualStart);if(!changed.length){toast('後ろに移動する未着手タスクはありません');return;}if(!confirm(`${changed.length}件の未着手タスクを、先行タスクの完了後へ移動します。着手済みのタスクは動かしません。実行しますか？`))return;for(const t of changed){const n=duration(t);t.start=date(a.es[t.id]);t.end=date(a.es[t.id]+Math.max(0,n-1));}persist();toast('依存関係に合わせて日程を更新しました');};
- function download(name,content,type){const url=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
- $('saveFile').onclick=async()=>{try{const text=JSON.stringify(p,null,2);if(fileHandle){const w=await fileHandle.createWritable();await w.write(text);await w.close();toast('開いたJSONファイルへ保存しました');}else{download(p.name.replace(/[\\/:*?"<>|]/g,'_')+'.json',text,'application/json');toast('JSONを保存しました。共有フォルダに置いて使えます');}dirty=false;}catch(e){toast('保存できませんでした：'+e.message);}};
- $('openFile').onclick=async()=>{if(dirty&&!confirm('JSONファイルを開くと現在の表示を置き換えます。必要なら先にJSON保存してください。続けますか？'))return;if(window.showOpenFilePicker){try{const [h]=await showOpenFilePicker({types:[{description:'プロジェクトJSON',accept:{'application/json':['.json']}}],multiple:false});const next=validate(JSON.parse(await(await h.getFile()).text()));p=next;fileHandle=h;persist();dirty=false;toast('読み込みました。JSON保存で同じファイルに上書きできます');}catch(e){if(e.name!=='AbortError')toast('読込できませんでした：'+e.message);}}else $('fileInput').click();};
- $('fileInput').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;p=validate(JSON.parse(await f.text()));fileHandle=null;persist();dirty=false;toast('読み込みました');}catch(err){toast('読込できませんでした：'+err.message);}finally{e.target.value='';}};
- $('newProject').onclick=()=>{if(!confirm('新規プロジェクトに切り替えます。現在の内容は先にJSON保存してください。続けますか？'))return;p={version:1,name:'新しいプロジェクト',tasks:[],target:'all',statusDate:today(),baseline:null};fileHandle=null;persist();};$('loadSample').onclick=()=>{if(!confirm('講演会サンプルに切り替えます。現在の内容は先にJSON保存してください。続けますか？'))return;p=sample();fileHandle=null;persist();};$('print').onclick=()=>window.print();$('helpButton').onclick=()=>$('helpDialog').showModal();$('closeHelp').onclick=()=>$('helpDialog').close();
- window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});render();
+      /* Readable chart layout */
+      main {
+        max-width: none;
+      }
+      .grid {
+        grid-template-columns: 720px auto;
+      }
+      .left {
+        grid-template-columns: 360px 190px 80px 90px;
+      }
+      .head {
+        height: 72px;
+        font-size: 13px;
+      }
+      .task,
+      .lane {
+        height: 64px;
+      }
+      .task {
+        font-size: 14px;
+      }
+      .tasktext strong {
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .tasktext small {
+        font-size: 12px;
+        color: #64766a;
+      }
+      .period {
+        font-size: 13px;
+        color: #52695b;
+      }
+      .slack {
+        color: #647568;
+      }
+      .warning {
+        font-size: 11px;
+      }
+      .months,
+      .ticks {
+        height: 36px;
+      }
+      .ticks {
+        top: 36px;
+      }
+      .months span,
+      .ticks span {
+        font-size: 12px;
+        padding: 9px 7px;
+      }
+      .bar {
+        top: 14px;
+        height: 25px;
+      }
+      .base {
+        top: 44px;
+        height: 5px;
+      }
+      .actual {
+        top: 53px;
+        height: 5px;
+      }
+      .bar.milestone {
+        top: 19px;
+        width: 16px !important;
+        height: 16px;
+      }
+      .dependency {
+        stroke-width: 1.4;
+        opacity: 1;
+      }
+      .legend,
+      .toggles {
+        font-size: 12px;
+      }
+      #scroll {
+        max-height: 72vh;
+      }
+      .chartfocus {
+        overflow: hidden;
+      }
+      .chartfocus .workspace {
+        position: fixed;
+        inset: 12px;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 0 0 20px var(--paper);
+      }
+      .chartfocus #scroll {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+      }
+      .chartfocus .toolbar,
+      .chartfocus .toggles,
+      .chartfocus .legend {
+        flex-shrink: 0;
+      }
+      .chartfocus #expandChart {
+        background: #226c57;
+        color: white;
+      }
+      .head {
+        position: sticky;
+        top: 0;
+      }
+      .head.left {
+        z-index: 8;
+      }
+      .months span {
+        overflow: hidden;
+      }
+      #chart .head.timeline {
+        z-index: 5;
+      }
+      @media print {
+        .chartfocus .workspace {
+          position: static;
+          display: block;
+          box-shadow: none;
+        }
+        .chartfocus #scroll {
+          max-height: none;
+          overflow: visible;
+        }
+        #chart {
+          zoom: 0.55;
+        }
+      }
+      .head.left {
+        padding-left: 0;
+      }
+      .head.left span:first-child {
+        padding-left: 18px;
+      }
+      .pct,
+      .slack,
+      .head.left span:nth-child(3),
+      .head.left span:nth-child(4) {
+        text-align: right;
+        padding-right: 18px;
+        font-variant-numeric: tabular-nums;
+      }
+      .dependency.critical {
+        stroke: var(--red);
+        stroke-width: 2;
+      }
+      input:disabled {
+        background: #f0f2ee;
+        color: #718276;
+      }
+      @media print {
+        .task-moves {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <div class="logo">▥</div>
+        <div><strong>こもれび計画</strong><small>小さなチームのためのガントチャート</small></div>
+      </div>
+      <div class="actions">
+        <button id="newProject">新規</button><button id="openFile">JSONを開く</button
+        ><button id="print">印刷 / PDF</button
+        ><button id="saveFile" class="primary">↓ JSON保存</button>
+      </div>
+    </header>
+    <main>
+      <div class="eyebrow">PROJECT PLANNER / LOCAL EDITION</div>
+      <div class="projectline">
+        <input id="projectName" aria-label="プロジェクト名" /><span id="saveState"
+          >端末内に保存 · 共有するときはJSON保存</span
+        >
+      </div>
+      <div class="stats">
+        <div class="stat"><span>すべてのタスク</span><b id="count">0</b></div>
+        <div class="stat"><span>完了したタスク</span><b id="done">0</b></div>
+        <div class="stat red"><span>基準日時点の期限超過</span><b id="late">0</b></div>
+        <div class="stat red"><span>余裕0日の未完了タスク</span><b id="criticalCount">0</b></div>
+      </div>
+      <section class="workspace">
+        <div class="toolbar">
+          <button id="addTask" class="primary">＋ タスク追加</button>
+          <div class="divider"></div>
+          <label>基準日 <input type="date" id="statusDate" /></label
+          ><label title="期間・待ち日数・余裕を平日で計算します。祝日は含みます。"
+            ><input type="checkbox" id="excludeWeekends" />土日を除く</label
+          ><label
+            >目標
+            <select id="target"></select></label
+          ><label
+            >表示
+            <select id="scale">
+              <option value="0" selected>画面に合わせる</option>
+              <option value="5">月</option>
+              <option value="10">週</option>
+              <option value="24">日</option>
+            </select></label
+          ><button id="schedule">依存に合わせて日程調整</button
+          ><button id="saveBaseline">基準計画を保存</button
+          ><button id="expandChart">チャートを広く</button>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="v_deps" checked />依存関係</label
+          ><label><input type="checkbox" id="v_critical" checked />クリティカルパス</label
+          ><label><input type="checkbox" id="v_baseline" checked />基準計画</label
+          ><label><input type="checkbox" id="v_actual" checked />実績期間</label
+          ><label><input type="checkbox" id="v_lightning" checked />イナズマ線</label
+          ><span class="baselineinfo" id="baselineLabel"></span>
+        </div>
+        <div id="scroll"><div id="chart"></div></div>
+        <div class="legend">
+          <span><i class="swatch"></i>現在計画 / 濃色＝進捗</span
+          ><span><i class="swatch red"></i>余裕0日</span
+          ><span><i class="swatch gray"></i>基準計画</span
+          ><span><i class="swatch blue"></i>実績期間</span
+          ><span><i class="swatch gold"></i>イナズマ線</span
+          ><span>点線＝基準日 · 行やバーをクリックして編集</span>
+        </div>
+      </section>
+      <p id="note"></p>
+      <footer>
+        <span
+          >計画データは端末内に保存 · アカウント不要 ·
+          <span id="calendarSummary">暦日で計算</span></span
+        >
+        <div>
+          <button id="loadSample">講演会サンプル</button>　/　<button id="helpButton">
+            使い方・計算のルール
+          </button>
+        </div>
+      </footer>
+    </main>
+    <dialog id="dialog">
+      <div class="dialoghead">
+        <h2 id="dialogTitle">タスクを編集</h2>
+        <button id="closeDialog" aria-label="閉じる">✕</button>
+      </div>
+      <form id="taskForm">
+        <div class="fields">
+          <label>ID<input id="f_id" required maxlength="40" /></label
+          ><label
+            >担当者<input
+              id="f_owner"
+              maxlength="100"
+              list="ownerCandidates"
+              placeholder="候補から選択、または新しい名前を入力"
+              autocomplete="off"
+            /><datalist id="ownerCandidates"></datalist
+            ><small class="muted"
+              >入力した担当者は、このプロジェクトの候補に残ります。</small
+            ></label
+          ><label class="wide">タスク名<input id="f_name" required maxlength="200" /></label
+          ><label>計画開始日<input type="date" id="f_start" required /></label
+          ><label
+            >計画終了日<input type="date" id="f_end" required />
+            <small id="milestoneDateHint" class="muted" hidden
+              >マイルストーンは開始日と同じ日です。</small
+            ></label
+          ><label
+            >進捗率（%）<input type="number" id="f_progress" min="0" max="100" required /></label
+          ><label
+            >先行完了後の待ち日数<input
+              type="number"
+              id="f_lag"
+              min="0"
+              max="365"
+              step="1"
+              required /></label
+          ><label class="inline wide"
+            ><input
+              type="checkbox"
+              id="f_milestone"
+            />マイルストーン（期間0日・開始日を使用）</label
+          ><label>実績開始日<input type="date" id="f_actualStart" /></label
+          ><label>実績終了日<input type="date" id="f_actualEnd" /></label
+          ><label class="wide"
+            >先行タスク（終了→開始）
+            <div id="f_deps"></div></label
+          ><label class="wide"
+            >メモ<textarea id="f_note" rows="2" maxlength="3000"></textarea>
+          </label>
+        </div>
+        <div id="formError" class="error" role="alert"></div>
+        <div class="formactions">
+          <button type="button" id="deleteTask" class="danger">タスクを削除</button
+          ><button type="submit" class="primary">変更を保存</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="helpDialog" class="help">
+      <div class="dialoghead">
+        <h2>使い方・計算のルール</h2>
+        <button id="closeHelp" aria-label="閉じる">✕</button>
+      </div>
+      <p>
+        公開サイトを開くか、保存した <code>index.html</code> をChrome・Edge・Safariなどのブラウザで開いてください。アカウント登録・インストール・月額料金は不要です。ローカルのHTMLには必要なコードがすべて入っており、外部通信なしで使えます。計画データの送信やアクセス解析はありません。
+      </p>
+      <h3>基本操作</h3>
+      <ol>
+        <li>最初は講演会準備のサンプルが表示されます。進捗・依存関係・開催日は仮の例です。</li>
+        <li>タスクの行やバーをクリックすると、日付・担当者・進捗・先行タスク・実績日を編集できます。</li>
+        <li>計画が決まったら「基準計画を保存」。基準計画は灰色、現在計画は緑、実績期間は青で表示します。</li>
+        <li>基準日を指定すると、その日時点の進捗をイナズマ線で確認できます。過去の進捗履歴を自動復元する機能はありません。</li>
+        <li>「目標」は、初期状態では基準日当日以降で最も近いマイルストーンを選びます。該当するものがなければ「プロジェクト全体」になります。自動選択中は基準日の変更にも追従します。手動で選んだ目標は維持し、その目標に至る先行タスクの余裕を表示します。</li>
+        <li>「JSON保存」でプロジェクトファイルを書き出します。「JSONを開く」で再開できます。</li>
+      </ol>
+      <p>
+        担当者欄は、過去に登録した名前を候補に表示します。新しい名前を入力してタスクを保存すると候補に追加され、担当を変更したりタスクを削除したりしても履歴は残ります。候補はプロジェクトのJSON内に保存されます。以前のJSONを開いた場合も、既存タスクの担当者から候補を作成します。
+      </p>
+      <h3>表示と並び替え</h3>
+      <p>
+        表示は初期状態で画面幅に合わせて自動調整します。「チャートを広く」でヘッダーや集計を隠してチャートに画面を使えます。Escで通常表示へ戻れます。月・週・日表示では横スクロールで詳細を確認できます。
+      </p>
+      <p>
+        タスク名の左にある「↑ 上へ」「↓ 下へ」で、タスクやマイルストーンを1行ずつ移動できます。先頭の「上へ」と末尾の「下へ」は使えません。並び順はブラウザ内と保存するJSONに反映され、日付・依存関係・基準計画は変わりません。目標の選択肢では、マイルストーンの末尾に「◆」を表示します。
+      </p>
+      <h3>ファイル共有</h3>
+      <p>
+        HTMLはアプリ本体、JSONはプロジェクトのデータです。HTMLとJSONをGoogle Drive・Dropbox・OneDriveなどの共有フォルダに置いて使えます。HTMLはローカルにダウンロードしてから開いてください。ストレージのWebプレビュー上での実行は想定していません。
+      </p>
+      <p>
+        Chrome・Edgeなど対応ブラウザでは「JSONを開く」で選んだファイルに上書きできます。その他のブラウザでは「JSON保存」でダウンロードするため、共有フォルダ内の正本を置き換えてください。編集は1人ずつ行ってください。同時編集・自動マージ・クラウド自動同期はアプリに含まれません。
+      </p>
+      <p>
+        編集内容はブラウザ内にも1プロジェクト分を自動保存しますが、JSONファイルには自動反映しません。バックアップ・共有の正本はJSONです。ブラウザのデータ削除や利用環境変更に備え、定期的にJSON保存してください。新しいプロジェクトを作る前や基準計画を更新する前にもJSON保存してください。
+      </p>
+      <p>
+        ローカル版と公開版ではブラウザ内の保存領域が異なります。移行するときは、元の画面でJSON保存し、移行先の「JSONを開く」で読み込んでください。ローカル版HTMLを新しい版に置き換える場合も、先にJSONで保存してください。
+      </p>
+      <h3>計算の前提</h3>
+      <ul>
+        <li>期間は通常は土日祝を含む暦日です。「土日を除く」を選ぶと、期間・待ち日数・余裕・進捗位置を平日（月〜金）で計算し、土日の列を灰色で表示します。祝日は平日なら含みます。個人の稼働率・工数・費用は計算しません。</li>
+        <li>設定はJSONとブラウザ内に保存します。設定のない従来のJSONは暦日として開きます。切り替えだけでは入力済みの日付を変更しません。土日を除く場合、通常タスクの計算上の開始日は次の平日となり、「依存に合わせて日程調整」で未着手タスクに反映できます。通常タスクには平日を1日以上含めてください。マイルストーンと実績日は土日も指定できます。日付軸とバーの幅は暦日で表示します。</li>
+        <li>依存関係は終了→開始（FS）です。通常タスクは先行終了日の翌日以降、期間0日のマイルストーンは同日から後続を開始できます。土日を除く場合、後続の通常タスクは次の平日から開始できます。待ち日数は後続タスクに設定し、そのタスクの全先行に共通です。</li>
+        <li>現在の開始日は「これより前には始めない日」として扱います。前後関係に矛盾があれば警告します。「依存に合わせて日程調整」で未着手の通常タスクのみ後ろへ移動できます。マイルストーンは移動せず、依存と矛盾する場合は警告を残します。</li>
+        <li>マイルストーンの終了日は開始日と同じ日付です。編集画面でマイルストーンを選ぶと終了日は編集不可となり、開始日を変えると終了日も同期します。チェックを外すと終了日を編集できます。</li>
+        <li>クリティカルパスは、現在の日程制約と依存関係で計算した余裕0日のタスクです。タスクと、余裕0日同士を待ち日数以外の余裕なくつなぐ矢印を赤く表示します。目標に影響しないタスクの余裕は「—」です。予定に余裕を含めている場合、開催マイルストーンだけが赤くなる場合もあります。マイルストーンの指定日を超える遅延は、日程不整合の警告で確認してください。進捗率や実績日から残期間を自動予測しないため、見込みが変わったら計画終了日を更新してください。</li>
+        <li>イナズマ線は基準計画（なければ現在計画）の期間に進捗率を当てはめる簡易方式です。基準日より左は遅れ、右は先行の目安です。完了タスクと着手予定日前のタスクは基準日へ戻します。工数を使うEVM計算ではありません。</li>
+        <li>基準計画は「基準計画を保存」を押した時点の日程です。その後に日程を変えても灰色のバーが残り、現在計画や実績期間と比較できます。保存できる基準計画は1世代で、再保存すると置き換わります。以前のJSONを別名保存すると履歴を残せます。</li>
+        <li>未完了タスクの実績期間は実績開始日から基準日までを表示します。</li>
+        <li>タスクは500件、計画範囲は10年以内です。</li>
+      </ul>
+      <h3>印刷・PDF</h3>
+      <p>
+        「印刷 / PDF」で印刷やPDFへの保存ができます。A3横向きを想定しています。期間が長い場合は「画面に合わせる」表示を選び、印刷プレビューで倍率を調整してください。
+      </p>
+    </dialog>
+    <input type="file" id="fileInput" accept=".json,application/json" hidden />
+    <div id="toast" role="status"></div>
+    <script>
+      'use strict';
+
+// 日付と表示に共通する処理。
+const MILLISECONDS_PER_DAY = 86_400_000;
+
+// タイムゾーンによる日付のずれを避けるため、計算にはUTCの日数を使う。
+function toDayNumber(dateString) {
+  return Math.round(Date.parse(dateString + 'T00:00:00Z') / MILLISECONDS_PER_DAY);
 }
 
-</script></body></html>
+function toDateString(dayNumber) {
+  return new Date(dayNumber * MILLISECONDS_PER_DAY).toISOString().slice(0, 10);
+}
+
+// 「今日」の表示は利用者のローカル日付に合わせる。
+function getTodayDate() {
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const day = String(currentDate.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function escapeHtml(value) {
+  const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' };
+  return String(value ?? '').replace(/[&<>"']/g, (character) => entities[character]);
+}
+
+// 月曜（1970-01-05）を起点に、土日を同じ作業日の境界へ写す。
+function toScheduleDay(dayNumber, excludeWeekends = false) {
+  if (!excludeWeekends) {
+    return dayNumber;
+  }
+  const daysFromMonday = dayNumber - 4;
+  const weeks = Math.floor(daysFromMonday / 7);
+  const weekday = daysFromMonday - weeks * 7;
+  return weeks * 5 + Math.min(weekday, 5);
+}
+
+function fromScheduleDay(scheduleDay, excludeWeekends = false) {
+  if (!excludeWeekends) {
+    return scheduleDay;
+  }
+  const weeks = Math.floor(scheduleDay / 5);
+  return 4 + weeks * 7 + (scheduleDay - weeks * 5);
+}
+
+function getTaskDuration(task, excludeWeekends = false) {
+  return task.milestone
+    ? 0
+    : toScheduleDay(toDayNumber(task.end) + 1, excludeWeekends) -
+        toScheduleDay(toDayNumber(task.start), excludeWeekends);
+}
+
+function getTaskFinish(startDay, duration, excludeWeekends = false) {
+  if (duration === 0) {
+    return startDay;
+  }
+  // 金曜までの作業の完了境界は土曜。休日のマイルストーンも指定できる。
+  return (
+    fromScheduleDay(toScheduleDay(startDay, excludeWeekends) + duration - 1, excludeWeekends) + 1
+  );
+}
+
+function getProgressDay(task, progress, excludeWeekends = false) {
+  const startDay = toDayNumber(task.start);
+  if (task.milestone) {
+    return startDay;
+  }
+  if (progress === 100) {
+    return toDayNumber(task.end) + 1;
+  }
+  const completedDays = (getTaskDuration(task, excludeWeekends) * progress) / 100;
+  const wholeDays = Math.floor(completedDays);
+  return (
+    fromScheduleDay(toScheduleDay(startDay, excludeWeekends) + wholeDays, excludeWeekends) +
+    completedDays -
+    wholeDays
+  );
+}
+
+function getDefaultTarget(tasks, statusDate) {
+  let nearestMilestone;
+  for (const task of tasks) {
+    if (
+      task.milestone &&
+      task.start >= statusDate &&
+      (!nearestMilestone || task.start < nearestMilestone.start)
+    ) {
+      nearestMilestone = task;
+    }
+  }
+  return nearestMilestone?.id || 'all';
+}
+
+// 矢印は後続バーの左側へ右向きに入れる。近すぎる場合は行間へ回り込む。
+function getDependencyPoints(sourceX, targetX, sourceRow, targetRow, rowHeight = 64) {
+  const sourceY = sourceRow * rowHeight + 26;
+  const targetY = targetRow * rowHeight + 26;
+  const routingGap = 14;
+  if (targetX - sourceX >= routingGap * 2) {
+    const bendX = (sourceX + targetX) / 2;
+    return [
+      [sourceX, sourceY],
+      [bendX, sourceY],
+      [bendX, targetY],
+      [targetX, targetY],
+    ];
+  }
+  const corridorY =
+    targetRow > sourceRow ? (sourceRow + 1) * rowHeight - 2 : sourceRow * rowHeight + 4;
+  return [
+    [sourceX, sourceY],
+    [sourceX + routingGap, sourceY],
+    [sourceX + routingGap, corridorY],
+    [targetX - routingGap, corridorY],
+    [targetX - routingGap, targetY],
+    [targetX, targetY],
+  ];
+}
+// 先行順で最早日、後続順で最遅日を計算し、その差を総余裕とする。
+function analyzeSchedule(tasks, target = 'all', excludeWeekends = false) {
+  const tasksById = new Map(tasks.map((task) => [task.id, task]));
+  const taskOrder = [];
+  const visitedTaskIds = new Set();
+  const activeTaskIds = new Set();
+  function visitTask(task) {
+    if (activeTaskIds.has(task.id)) {
+      throw Error('依存関係が循環しています：' + task.name);
+    }
+    if (visitedTaskIds.has(task.id)) {
+      return;
+    }
+    activeTaskIds.add(task.id);
+    for (const predecessorId of task.deps) {
+      if (!tasksById.has(predecessorId)) {
+        throw Error('存在しない先行ID：' + predecessorId);
+      }
+      visitTask(tasksById.get(predecessorId));
+    }
+    activeTaskIds.delete(task.id);
+    visitedTaskIds.add(task.id);
+    taskOrder.push(task);
+  }
+  // 依存関係の循環を検出しながら、先行タスクが先に来る順序を作る。
+  tasks.forEach(visitTask);
+  const earliestStarts = {};
+  const earliestFinishes = {};
+  const latestStarts = {};
+  const latestFinishes = {};
+  const relevantTaskIds = new Set();
+  function collectPredecessors(id) {
+    if (relevantTaskIds.has(id)) {
+      return;
+    }
+    relevantTaskIds.add(id);
+    tasksById.get(id).deps.forEach(collectPredecessors);
+  }
+  if (target !== 'all' && tasksById.has(target)) {
+    collectPredecessors(target);
+  } else {
+    tasks.forEach((task) => relevantTaskIds.add(task.id));
+  }
+  // 通常タスクの終了は、終了日の翌日を表す排他的な境界。
+  for (const task of taskOrder) {
+    const duration = getTaskDuration(task, excludeWeekends);
+    if (!task.milestone && duration < 1) {
+      throw Error(`「${task.name}」の計画期間には平日を1日以上含めてください`);
+    }
+    const earliestDay = Math.max(
+      toDayNumber(task.start),
+      ...task.deps.map((predecessorId) => {
+        const finishDay = earliestFinishes[predecessorId];
+        return task.lag
+          ? fromScheduleDay(toScheduleDay(finishDay, excludeWeekends) + task.lag, excludeWeekends)
+          : finishDay;
+      }),
+    );
+    earliestStarts[task.id] = task.milestone
+      ? earliestDay
+      : fromScheduleDay(toScheduleDay(earliestDay, excludeWeekends), excludeWeekends);
+    earliestFinishes[task.id] = getTaskFinish(earliestStarts[task.id], duration, excludeWeekends);
+  }
+  const finish = relevantTaskIds.size
+    ? Math.max(...[...relevantTaskIds].map((id) => earliestFinishes[id]))
+    : toDayNumber(getTodayDate());
+  for (const task of [...taskOrder].reverse()) {
+    if (!relevantTaskIds.has(task.id)) {
+      continue;
+    }
+    const successors = tasks.filter(
+      (successor) => relevantTaskIds.has(successor.id) && successor.deps.includes(task.id),
+    );
+    latestFinishes[task.id] = successors.length
+      ? Math.min(
+          ...successors.map((successor) => latestStarts[successor.id] - (successor.lag || 0)),
+        )
+      : toScheduleDay(finish, excludeWeekends);
+    latestStarts[task.id] = latestFinishes[task.id] - getTaskDuration(task, excludeWeekends);
+  }
+  const slack = {};
+  for (const id of relevantTaskIds) {
+    slack[id] = latestStarts[id] - toScheduleDay(earliestStarts[id], excludeWeekends);
+  }
+  const criticalDependencies = new Set();
+  for (const task of taskOrder) {
+    for (const predecessorId of task.deps) {
+      if (
+        slack[task.id] === 0 &&
+        slack[predecessorId] === 0 &&
+        toScheduleDay(earliestStarts[task.id], excludeWeekends) ===
+          toScheduleDay(earliestFinishes[predecessorId], excludeWeekends) + (task.lag || 0)
+      ) {
+        criticalDependencies.add(JSON.stringify([predecessorId, task.id]));
+      }
+    }
+  }
+  return {
+    order: taskOrder,
+    es: earliestStarts,
+    ef: earliestFinishes,
+    slack,
+    relevant: relevantTaskIds,
+    finish,
+    criticalDependencies,
+  };
+}
+// 担当を外した名前も履歴として残し、同じプロジェクトで再利用する。
+function rememberProjectOwners(project) {
+  project.owners = [
+    ...new Set(
+      [...(project.owners || []), ...project.tasks.map((task) => task.owner)]
+        .filter((name) => typeof name === 'string')
+        .map((name) => name.trim())
+        .filter(Boolean),
+    ),
+  ];
+  return project;
+}
+// 旧形式も読み込めるよう、検証後に担当者候補を補完する。
+function validateProject(project) {
+  if (
+    !project ||
+    project.version !== 1 ||
+    typeof project.name !== 'string' ||
+    !Array.isArray(project.tasks)
+  ) {
+    throw Error('このツールのJSONファイルを選んでください');
+  }
+  if (
+    project.owners !== undefined &&
+    (!Array.isArray(project.owners) ||
+      project.owners.length > 5000 ||
+      !project.owners.every((n) => typeof n === 'string' && n.length <= 100))
+  ) {
+    throw Error('担当者リストが不正です');
+  }
+  if (project.tasks.length > 500) {
+    throw Error('タスクは500件までです');
+  }
+  if (project.excludeWeekends !== undefined && typeof project.excludeWeekends !== 'boolean') {
+    throw Error('土日を除く設定が不正です');
+  }
+  if (
+    project.targetSelection !== undefined &&
+    !['auto', 'manual'].includes(project.targetSelection)
+  ) {
+    throw Error('目標の選択方法が不正です');
+  }
+  const ids = new Set();
+  for (const task of project.tasks) {
+    if (typeof task.id !== 'string' || !task.id.trim() || ids.has(task.id)) {
+      throw Error('タスクIDは重複しない文字列にしてください');
+    }
+    ids.add(task.id);
+    if (typeof task.name !== 'string' || !task.name.trim()) {
+      throw Error('タスク名が必要です');
+    }
+    for (const fieldName of ['start', 'end']) {
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(task[fieldName]) ||
+        !Number.isFinite(toDayNumber(task[fieldName])) ||
+        toDateString(toDayNumber(task[fieldName])) !== task[fieldName]
+      ) {
+        throw Error('日付を確認してください');
+      }
+    }
+    if (toDayNumber(task.end) < toDayNumber(task.start)) {
+      throw Error('終了日は開始日以降にしてください');
+    }
+    if (task.milestone && task.start !== task.end) {
+      throw Error('マイルストーンは開始日と終了日を同じにしてください');
+    }
+    if (
+      !Array.isArray(task.deps) ||
+      !task.deps.every((x) => typeof x === 'string') ||
+      new Set(task.deps).size !== task.deps.length
+    ) {
+      throw Error('先行IDを確認してください');
+    }
+    if (!Number.isFinite(task.progress) || task.progress < 0 || task.progress > 100) {
+      throw Error('進捗は0〜100%です');
+    }
+    if (!Number.isInteger(task.lag) || task.lag < 0 || task.lag > 365) {
+      throw Error('待ち日数は0〜365日です');
+    }
+    for (const fieldName of ['actualStart', 'actualEnd']) {
+      if (
+        task[fieldName] &&
+        (!/^\d{4}-\d{2}-\d{2}$/.test(task[fieldName]) ||
+          !Number.isFinite(toDayNumber(task[fieldName])) ||
+          toDateString(toDayNumber(task[fieldName])) !== task[fieldName])
+      ) {
+        throw Error('実績日を確認してください');
+      }
+    }
+    if (task.actualEnd && !task.actualStart) {
+      throw Error('実績終了日には実績開始日も必要です');
+    }
+    if (task.actualEnd && task.actualEnd < task.actualStart) {
+      throw Error('実績終了日は実績開始日以降です');
+    }
+    if (task.actualEnd && task.progress !== 100) {
+      throw Error('実績終了日を入れる場合は進捗を100%にしてください');
+    }
+  }
+  if (
+    project.statusDate &&
+    (!/^\d{4}-\d{2}-\d{2}$/.test(project.statusDate) ||
+      !Number.isFinite(toDayNumber(project.statusDate)) ||
+      toDateString(toDayNumber(project.statusDate)) !== project.statusDate)
+  ) {
+    throw Error('基準日が不正です');
+  }
+  if (
+    project.tasks.length &&
+    Math.max(...project.tasks.map((task) => toDayNumber(task.end))) -
+      Math.min(...project.tasks.map((task) => toDayNumber(task.start))) >
+      3660
+  ) {
+    throw Error('計画範囲は10年以内にしてください');
+  }
+  analyzeSchedule(project.tasks, 'all', project.excludeWeekends);
+  if (project.baseline) {
+    if (
+      typeof project.baseline !== 'object' ||
+      !project.baseline.tasks ||
+      Array.isArray(project.baseline.tasks)
+    ) {
+      throw Error('基準計画が不正です');
+    }
+    for (const baseline of Object.values(project.baseline.tasks)) {
+      if (
+        !baseline ||
+        !Number.isFinite(toDayNumber(baseline.start)) ||
+        !Number.isFinite(toDayNumber(baseline.end)) ||
+        toDayNumber(baseline.end) < toDayNumber(baseline.start)
+      ) {
+        throw Error('基準計画の日付が不正です');
+      }
+    }
+  }
+  return rememberProjectOwners(project);
+}
+// 外部ファイルは読まず、ここから講演会サンプルを生成する。
+function createSampleProject() {
+  const rows = [
+    ['T01', '実行委員会キックオフ・全体方針策定', '2026-11-01', '2026-11-15', '担当A', [], 100],
+    ['T02', '開催要項・予算案策定', '2026-11-16', '2026-12-15', '担当B', ['T01'], 60],
+    ['T03', '会場選定・設備確認・仮予約', '2026-12-01', '2026-12-28', '担当C', ['T01'], 30],
+    [
+      'T04',
+      '特別講演講師・来賓への登壇依頼',
+      '2027-01-05',
+      '2027-01-31',
+      '担当D',
+      ['T02', 'T03'],
+      0,
+    ],
+    ['T05', '案内状送付・参加受付開始', '2027-02-01', '2027-02-28', '担当E', ['T04'], 0],
+    ['T06', '記念品・ノベルティの手配', '2027-02-15', '2027-03-15', '担当F', ['T02'], 0],
+    ['T07', '参加者名簿確定・参加費集計', '2027-03-16', '2027-04-10', '担当G', ['T05'], 0],
+    ['T08', '当日配布資料・パンフレット印刷', '2027-04-01', '2027-04-25', '担当H', ['T04'], 0],
+    ['T09', '進行台本策定・司会リハーサル', '2027-04-26', '2027-05-10', '担当I', ['T08'], 0],
+    ['T10', '合格祝賀CPD 開催', '2027-05-16', '2027-05-16', '全員', ['T06', 'T07', 'T09'], 0],
+    ['T11', '終了報告・アンケート集計', '2027-05-17', '2027-05-31', '担当A', ['T10'], 0],
+  ];
+  const actualStarts = {
+    T01: '2026-11-01',
+    T02: '2026-11-18',
+    T03: '2026-12-03',
+  };
+  const tasks = rows.map(([id, name, start, end, owner, deps, progress]) => ({
+    id,
+    name,
+    start,
+    end,
+    owner,
+    deps,
+    progress,
+    lag: 0,
+    milestone: id === 'T10',
+    actualStart: actualStarts[id] || '',
+    actualEnd: id === 'T01' ? '2026-11-15' : '',
+    note: '',
+  }));
+  return {
+    version: 1,
+    name: '講演会準備（サンプル）',
+    tasks,
+    owners: [...new Set(tasks.map((task) => task.owner))],
+    baseline: {
+      savedAt: '2026-11-01',
+      tasks: Object.fromEntries(
+        tasks.map((task) => [
+          task.id,
+          { start: task.start, end: task.end, milestone: task.milestone },
+        ]),
+      ),
+    },
+    statusDate: '2026-12-10',
+  };
+}
+if (typeof module !== 'undefined') {
+  module.exports = {
+    day: toDayNumber,
+    date: toDateString,
+    duration: getTaskDuration,
+    analyze: analyzeSchedule,
+    validate: validateProject,
+    sample: createSampleProject,
+    rememberOwners: rememberProjectOwners,
+    dependencyPoints: getDependencyPoints,
+    progressDay: getProgressDay,
+    taskFinish: getTaskFinish,
+    defaultTarget: getDefaultTarget,
+  };
+}
+// ブラウザ内の状態と操作。Node.jsのテストでは初期化しない。
+function initializeApp() {
+  const $ = (id) => document.getElementById(id);
+  const STORAGE_KEY = 'komorebi-gantt-v1';
+  let project;
+  let hasUnsavedChanges = false;
+  let editingTaskId = null;
+  let projectFileHandle = null;
+  const viewOptions = {
+    scale: 0,
+    baseline: true,
+    actual: true,
+    lightning: true,
+    deps: true,
+    critical: true,
+  };
+  try {
+    project = validateProject(JSON.parse(localStorage.getItem(STORAGE_KEY)));
+  } catch {
+    project = createSampleProject();
+  }
+
+  function toast(message) {
+    $('toast').textContent = message;
+    $('toast').classList.add('show');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => $('toast').classList.remove('show'), 4500);
+  }
+  // 自動保存はブラウザ内だけ。共有用JSONへの保存はsaveProjectFileで行う。
+  function persist() {
+    rememberProjectOwners(project);
+    hasUnsavedChanges = true;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+      $('saveState').textContent = '端末に自動保存済み · JSON保存で共有';
+    } catch {
+      $('saveState').textContent = '端末保存できません · JSONを保存してください';
+    }
+    render();
+  }
+  // 画面更新の入口。計算・集計・チャート描画を順に呼び出す。
+  function render() {
+    const target = renderProjectFields();
+    let analysis;
+    try {
+      analysis = analyzeSchedule(project.tasks, target, project.excludeWeekends);
+    } catch (error) {
+      toast(error.message);
+      return;
+    }
+
+    renderSummary(analysis);
+    if (!project.tasks.length) {
+      $('chart').innerHTML = '<div class="empty">タスクを追加して計画を始めましょう。</div>';
+      return;
+    }
+
+    const layout = createChartLayout();
+    const rows = project.tasks
+      .map((task, index) => renderTaskRow(task, index, analysis, layout))
+      .join('');
+    const chart = `
+      <div class="grid ${project.excludeWeekends ? 'weekends-excluded' : ''}" style="width:${layout.leftWidth + layout.chartWidth}px;--day-width:${layout.pixelsPerDay}px;--weekday-width:${layout.pixelsPerDay * 5}px;--week-width:${layout.pixelsPerDay * 7}px;--week-offset:${layout.weekOffset}px">
+        ${renderTimelineHeader(layout)}
+        ${rows}
+      </div>
+      <div class="overlaywrap" style="left:${layout.leftWidth}px;top:72px;width:${layout.chartWidth}px;height:${layout.chartHeight}px">
+        ${renderChartOverlay(layout, analysis)}
+      </div>`;
+    $('chart').innerHTML = chart;
+    $('note').textContent =
+      `目標までの余裕：現在の開始日を「これより前に着手しない日」として計算。灰色の余裕「—」は選択目標の対象外。${project.baseline ? 'イナズマ線は基準計画' : 'イナズマ線は現在計画'}と進捗率から算出。`;
+  }
+
+  function renderProjectFields() {
+    rememberProjectOwners(project);
+    $('ownerCandidates').innerHTML = project.owners
+      .map((name) => `<option value="${escapeHtml(name)}"></option>`)
+      .join('');
+    $('projectName').value = project.name;
+    $('statusDate').value = project.statusDate || getTodayDate();
+    $('excludeWeekends').checked = !!project.excludeWeekends;
+    $('calendarSummary').textContent = project.excludeWeekends
+      ? '平日で計算（土日を除く・祝日は含む）'
+      : '暦日で計算';
+
+    // 従来の具体的な目標は引き継ぎ、未指定・従来の初期値は自動選択する。
+    if (!project.targetSelection) {
+      project.targetSelection = project.target && project.target !== 'all' ? 'manual' : 'auto';
+    }
+    const hasValidTarget =
+      project.target === 'all' || project.tasks.some((task) => task.id === project.target);
+    if (!hasValidTarget) {
+      project.targetSelection = 'auto';
+    }
+    const target =
+      project.targetSelection === 'manual'
+        ? project.target
+        : getDefaultTarget(project.tasks, $('statusDate').value);
+    project.target = target;
+    $('target').innerHTML =
+      '<option value="all">プロジェクト全体</option>' +
+      project.tasks
+        .map(
+          (task) =>
+            `<option value="${escapeHtml(task.id)}">${escapeHtml(task.id + ' ' + task.name)}${task.milestone ? ' ◆' : ''}</option>`,
+        )
+        .join('');
+    $('target').value = target;
+    return target;
+  }
+
+  function renderSummary(analysis) {
+    const incompleteTasks = project.tasks.filter((task) => task.progress < 100);
+    const lateTasks = incompleteTasks.filter(
+      (task) => toDayNumber(task.end) < toDayNumber($('statusDate').value),
+    );
+    const criticalTasks = project.tasks.filter((task) => analysis.slack[task.id] === 0);
+
+    $('count').textContent = project.tasks.length;
+    $('done').textContent = project.tasks.filter((task) => task.progress === 100).length;
+    $('late').textContent = lateTasks.length;
+    $('criticalCount').textContent = criticalTasks.filter((task) => task.progress < 100).length;
+    $('baselineLabel').textContent = project.baseline
+      ? '基準計画：' + project.baseline.savedAt
+      : '基準計画：未保存';
+  }
+
+  // 日付はUTCの日数、描画位置はピクセル。ここで両者の対応を決める。
+  function createChartLayout() {
+    const statusDay = toDayNumber($('statusDate').value);
+    const allDays = project.tasks.flatMap((task) => [
+      toDayNumber(task.start),
+      toDayNumber(task.end),
+      task.actualStart ? toDayNumber(task.actualStart) : toDayNumber(task.start),
+      task.actualEnd ? toDayNumber(task.actualEnd) : toDayNumber(task.end),
+    ]);
+    if (project.baseline) {
+      Object.values(project.baseline.tasks).forEach((baseline) => {
+        allDays.push(toDayNumber(baseline.start), toDayNumber(baseline.end));
+      });
+    }
+
+    let firstDay = Math.min(...allDays) - 7;
+    let lastDay = Math.max(...allDays) + 14;
+    if (statusDay >= firstDay - 90 && statusDay <= lastDay + 90) {
+      firstDay = Math.min(firstDay, statusDay - 3);
+      lastDay = Math.max(lastDay, statusDay + 7);
+    }
+
+    const leftWidth = 720;
+    const rowHeight = 64;
+    const dayCount = lastDay - firstDay + 1;
+    const pixelsPerDay =
+      viewOptions.scale || Math.max(620, $('scroll').clientWidth - leftWidth) / dayCount;
+    return {
+      firstDay,
+      lastDay,
+      statusDay,
+      leftWidth,
+      rowHeight,
+      pixelsPerDay,
+      weekOffset: -((new Date(firstDay * MILLISECONDS_PER_DAY).getUTCDay() + 6) % 7) * pixelsPerDay,
+      chartWidth: dayCount * pixelsPerDay,
+      chartHeight: project.tasks.length * rowHeight,
+      dateToX: (dayNumber) => (dayNumber - firstDay) * pixelsPerDay,
+    };
+  }
+
+  function renderTimelineHeader(layout) {
+    const { firstDay, lastDay, pixelsPerDay, dateToX, chartWidth } = layout;
+    let monthLabels = '';
+    let dateLabels = '';
+    let previousMonth = '';
+    let previousLabelX = -Infinity;
+
+    for (let dayNumber = firstDay; dayNumber <= lastDay; dayNumber++) {
+      const calendarDate = new Date(dayNumber * MILLISECONDS_PER_DAY);
+      const month = toDateString(dayNumber).slice(0, 7);
+      const positionX = dateToX(dayNumber);
+      if (month !== previousMonth) {
+        if (dayNumber !== firstDay || calendarDate.getUTCDate() < 10) {
+          const label = `${calendarDate.getUTCFullYear()}/${String(calendarDate.getUTCMonth() + 1).padStart(2, '0')}`;
+          monthLabels += `<span style="left:${positionX}px">${label}</span>`;
+        }
+        previousMonth = month;
+      }
+
+      const isLabelDay =
+        pixelsPerDay >= 18 ||
+        (pixelsPerDay >= 7 && calendarDate.getUTCDay() === 1) ||
+        (pixelsPerDay < 7 && [1, 16].includes(calendarDate.getUTCDate()));
+      if (isLabelDay && positionX - previousLabelX >= 52) {
+        previousLabelX = positionX;
+        dateLabels += `<span style="left:${positionX}px">${calendarDate.getUTCMonth() + 1}/${calendarDate.getUTCDate()}</span>`;
+      }
+    }
+
+    return `
+      <div class="head left">
+        <span>タスク / 担当者</span><span>計画期間</span><span>進捗</span><span>余裕</span>
+      </div>
+      <div class="head timeline" style="width:${chartWidth}px">
+        <div class="months">${monthLabels}</div>
+        <div class="ticks">${dateLabels}</div>
+      </div>`;
+  }
+
+  function renderTaskRow(task, index, analysis, layout) {
+    const slack = analysis.slack[task.id];
+    const isCritical = slack === 0 && viewOptions.critical;
+    const hasDependencyConflict = analysis.es[task.id] > toDayNumber(task.start);
+    const isWeekendStart =
+      project.excludeWeekends &&
+      !task.milestone &&
+      fromScheduleDay(toScheduleDay(toDayNumber(task.start), true), true) > toDayNumber(task.start);
+    const warning = hasDependencyConflict
+      ? `<small class="warning">${isWeekendStart ? '開始日を平日へ調整してください' : '先行タスクと日程不整合'}</small>`
+      : '';
+    const startLabel = task.start.slice(5).replace('-', '/');
+    const endLabel = task.end.slice(5).replace('-', '/');
+
+    return `
+      <div class="task left ${isCritical ? 'iscritical' : ''}" data-id="${escapeHtml(task.id)}">
+        <div class="task-name">
+          <div class="task-moves">
+            <button type="button" data-move="-1" data-move-id="${escapeHtml(task.id)}" aria-label="${escapeHtml(task.name)}を上へ" ${index === 0 ? 'disabled' : ''}>↑ 上へ</button>
+            <button type="button" data-move="1" data-move-id="${escapeHtml(task.id)}" aria-label="${escapeHtml(task.name)}を下へ" ${index === project.tasks.length - 1 ? 'disabled' : ''}>↓ 下へ</button>
+          </div>
+          <button type="button" class="tasktext">
+            <small>${escapeHtml(task.id)} ${task.milestone ? '◆' : ''} · ${escapeHtml(task.owner || '担当未設定')}</small>
+            <strong>${escapeHtml(task.name)}</strong>
+          </button>
+        </div>
+        <span class="period">${escapeHtml(startLabel)} → ${escapeHtml(endLabel)}${warning}</span>
+        <span class="pct">${task.progress}%</span>
+        <span class="slack">${slack === undefined ? '—' : slack + '日'}</span>
+      </div>
+      <div class="lane" style="width:${layout.chartWidth}px">
+        ${renderBaselineBar(task, layout)}
+        ${renderPlannedBar(task, isCritical, layout)}
+        ${renderActualBar(task, layout)}
+      </div>`;
+  }
+
+  function renderBaselineBar(task, layout) {
+    const baseline = project.baseline?.tasks[task.id];
+    if (!viewOptions.baseline || !baseline) {
+      return '';
+    }
+
+    const duration = baseline.milestone
+      ? 0
+      : toDayNumber(baseline.end) - toDayNumber(baseline.start) + 1;
+    const width = Math.max(4, duration * layout.pixelsPerDay);
+    const left = layout.dateToX(toDayNumber(baseline.start));
+    return `<div class="base" style="left:${left}px;width:${width}px" title="基準計画 ${baseline.start}〜${baseline.end}"></div>`;
+  }
+
+  function renderPlannedBar(task, isCritical, layout) {
+    const width = Math.max(8, getTaskDuration(task) * layout.pixelsPerDay);
+    const left = layout.dateToX(toDayNumber(task.start));
+    const progressWidth =
+      task.progress === 0
+        ? 0
+        : ((getProgressDay(task, task.progress, project.excludeWeekends) -
+            toDayNumber(task.start)) /
+            Math.max(1, getTaskDuration(task))) *
+          100;
+    const progress = task.milestone ? '' : `<i style="width:${progressWidth}%"></i>`;
+    return `
+      <button
+        class="bar ${task.milestone ? 'milestone' : ''} ${isCritical ? 'critical' : ''}"
+        data-id="${escapeHtml(task.id)}"
+        style="left:${left}px;width:${width}px"
+        title="${escapeHtml(task.name)}：${task.start}〜${task.end}"
+      >${progress}</button>`;
+  }
+
+  function renderActualBar(task, layout) {
+    if (!viewOptions.actual || !task.actualStart) {
+      return '';
+    }
+
+    const startDay = toDayNumber(task.actualStart);
+    const endDay = task.actualEnd
+      ? toDayNumber(task.actualEnd)
+      : Math.max(startDay, layout.statusDay);
+    const width = Math.max(4, (endDay - startDay + 1) * layout.pixelsPerDay);
+    const left = layout.dateToX(startDay);
+    return `<div class="actual" style="left:${left}px;width:${width}px" title="実績 ${task.actualStart}〜${task.actualEnd || '基準日まで（未完了）'}"></div>`;
+  }
+
+  function renderDependencyPaths(layout, analysis) {
+    if (!viewOptions.deps) {
+      return '';
+    }
+
+    let paths = '';
+    project.tasks.forEach((task, targetRow) => {
+      task.deps.forEach((predecessorId) => {
+        const sourceRow = project.tasks.findIndex((candidate) => candidate.id === predecessorId);
+        const predecessor = project.tasks[sourceRow];
+        const sourceX =
+          layout.dateToX(toDayNumber(predecessor.start)) +
+          (predecessor.milestone
+            ? Math.SQRT2 * 8
+            : Math.max(8, getTaskDuration(predecessor) * layout.pixelsPerDay));
+        const targetX =
+          layout.dateToX(toDayNumber(task.start)) - (task.milestone ? Math.SQRT2 * 8 : 0);
+        const route = getDependencyPoints(sourceX, targetX, sourceRow, targetRow, layout.rowHeight);
+        const path = route
+          .map(([positionX, positionY], index) => `${index ? 'L' : 'M'}${positionX},${positionY}`)
+          .join(' ');
+        const isCritical =
+          viewOptions.critical &&
+          analysis.criticalDependencies.has(JSON.stringify([predecessorId, task.id]));
+        paths += `<path d="${path}" class="dependency${isCritical ? ' critical' : ''}" marker-end="url(#${isCritical ? 'criticalArrow' : 'arrow'})"/>`;
+      });
+    });
+    return paths;
+  }
+
+  function renderProgressLine(layout) {
+    if (!viewOptions.lightning) {
+      return '';
+    }
+
+    const points = project.tasks.map((task, rowIndex) => {
+      const baseline = project.baseline?.tasks[task.id] || task;
+      let progressDay = layout.statusDay;
+      if (task.progress < 100 && layout.statusDay >= toDayNumber(baseline.start)) {
+        progressDay = getProgressDay(baseline, task.progress, project.excludeWeekends);
+      }
+      return `${layout.dateToX(progressDay)},${rowIndex * layout.rowHeight + 26}`;
+    });
+    const statusX = layout.dateToX(layout.statusDay);
+    return `<polyline points="${statusX},0 ${points.join(' ')} ${statusX},${layout.chartHeight}" class="lightning"/>`;
+  }
+
+  function renderChartOverlay(layout, analysis) {
+    const { chartWidth, chartHeight, dateToX, statusDay } = layout;
+    const statusX = dateToX(statusDay);
+    const statusLine =
+      statusX >= 0 && statusX <= chartWidth
+        ? `<path d="M${statusX},0 V${chartHeight}" class="todayline"/>`
+        : '';
+    return `
+      <svg class="overlay" width="${chartWidth}" height="${chartHeight}" viewBox="0 0 ${chartWidth} ${chartHeight}">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M0 0 L10 5 L0 10" fill="#8c9bac"/>
+          </marker>
+          <marker id="criticalArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M0 0 L10 5 L0 10" fill="#be5c53"/>
+          </marker>
+        </defs>
+        ${renderDependencyPaths(layout, analysis)}
+        ${statusLine}
+        ${renderProgressLine(layout)}
+      </svg>`;
+  }
+
+  function openTask(id = null) {
+    editingTaskId = id;
+    const task = project.tasks.find((task) => task.id === id) || {
+      id:
+        'T' +
+        String(
+          Math.max(0, ...project.tasks.map((task) => Number(task.id.replace(/^T/, '')) || 0)) + 1,
+        ).padStart(2, '0'),
+      name: '',
+      owner: '',
+      start: project.statusDate || getTodayDate(),
+      end: project.statusDate || getTodayDate(),
+      progress: 0,
+      deps: [],
+      lag: 0,
+      milestone: false,
+      actualStart: '',
+      actualEnd: '',
+      note: '',
+    };
+    $('taskForm').reset();
+    for (const key of [
+      'id',
+      'name',
+      'owner',
+      'start',
+      'end',
+      'progress',
+      'lag',
+      'actualStart',
+      'actualEnd',
+      'note',
+    ]) {
+      $('f_' + key).value = task[key] ?? '';
+    }
+    $('f_milestone').checked = !!task.milestone;
+    synchronizeMilestoneDates();
+    $('f_deps').innerHTML =
+      project.tasks
+        .filter((x) => x.id !== id)
+        .map(
+          (x) =>
+            `<label class="depoption"><input type="checkbox" value="${escapeHtml(x.id)}" ${task.deps.includes(x.id) ? 'checked' : ''}><span>${escapeHtml(x.id + ' ' + x.name)}</span></label>`,
+        )
+        .join('') || '<span class="muted">先行タスクはありません</span>';
+    $('deleteTask').hidden = !id;
+    $('dialogTitle').textContent = id ? 'タスクを編集' : 'タスクを追加';
+    $('formError').textContent = '';
+    $('dialog').showModal();
+  }
+
+  function moveTask(id, direction) {
+    const index = project.tasks.findIndex((task) => task.id === id);
+    const destination = index + direction;
+    if (
+      index < 0 ||
+      ![-1, 1].includes(direction) ||
+      destination < 0 ||
+      destination >= project.tasks.length
+    ) {
+      return;
+    }
+    [project.tasks[index], project.tasks[destination]] = [
+      project.tasks[destination],
+      project.tasks[index],
+    ];
+    persist();
+    const moveButtons = [...$('chart').querySelectorAll('[data-move-id]')].filter(
+      (button) => button.dataset.moveId === id && !button.disabled,
+    );
+    const nextButton =
+      moveButtons.find((button) => Number(button.dataset.move) === direction) || moveButtons[0];
+    nextButton?.focus({ preventScroll: true });
+  }
+
+  function handleChartClick(event) {
+    const moveButton = event.target.closest('[data-move]');
+    if (moveButton) {
+      if (!moveButton.disabled) {
+        moveTask(moveButton.dataset.moveId, Number(moveButton.dataset.move));
+      }
+      return;
+    }
+    const taskElement = event.target.closest('[data-id]');
+    if (taskElement) {
+      openTask(taskElement.dataset.id);
+    }
+  }
+
+  function synchronizeMilestoneDates() {
+    const isMilestone = $('f_milestone').checked;
+    $('f_end').disabled = isMilestone;
+    $('milestoneDateHint').hidden = !isMilestone;
+    if (isMilestone) {
+      $('f_end').value = $('f_start').value;
+    }
+  }
+
+  function saveTaskFromForm(event) {
+    event.preventDefault();
+    try {
+      const task = {};
+      for (const key of [
+        'id',
+        'name',
+        'owner',
+        'start',
+        'end',
+        'actualStart',
+        'actualEnd',
+        'note',
+      ]) {
+        task[key] = $('f_' + key).value.trim();
+      }
+      task.progress = Number($('f_progress').value);
+      task.lag = Number($('f_lag').value);
+      task.milestone = $('f_milestone').checked;
+      if (task.milestone) {
+        task.end = task.start;
+      }
+      task.deps = [...$('f_deps').querySelectorAll('input:checked')].map(
+        (candidate) => candidate.value,
+      );
+      const updatedProject = structuredClone(project);
+      if (editingTaskId) {
+        updatedProject.tasks = updatedProject.tasks.map((candidate) =>
+          candidate.id === editingTaskId ? task : candidate,
+        );
+        if (task.id !== editingTaskId) {
+          updatedProject.tasks.forEach(
+            (candidate) =>
+              (candidate.deps = candidate.deps.map((predecessorId) =>
+                predecessorId === editingTaskId ? task.id : predecessorId,
+              )),
+          );
+          if (updatedProject.target === editingTaskId) {
+            updatedProject.target = task.id;
+          }
+          if (updatedProject.baseline?.tasks[editingTaskId]) {
+            updatedProject.baseline.tasks[task.id] = updatedProject.baseline.tasks[editingTaskId];
+            delete updatedProject.baseline.tasks[editingTaskId];
+          }
+        }
+      } else {
+        updatedProject.tasks.push(task);
+      }
+      validateProject(updatedProject);
+      project = updatedProject;
+      persist();
+      $('dialog').close();
+    } catch (error) {
+      $('formError').textContent = error.message;
+    }
+  }
+
+  function deleteSelectedTask() {
+    const task = project.tasks.find((task) => task.id === editingTaskId);
+    const dependentTasks = project.tasks.filter((task) => task.deps.includes(editingTaskId));
+    if (
+      !confirm(
+        `「${task.name}」を削除しますか？${dependentTasks.length ? ' 後続タスクの依存関係からも外れます。' : ''}`,
+      )
+    ) {
+      return;
+    }
+    project.tasks = project.tasks.filter((task) => task.id !== editingTaskId);
+    project.tasks.forEach((task) => (task.deps = task.deps.filter((id) => id !== editingTaskId)));
+    persist();
+    $('dialog').close();
+  }
+
+  function toggleChartExpansion() {
+    const expanded = document.body.classList.toggle('chartfocus');
+    $('expandChart').textContent = expanded ? '通常表示に戻す' : 'チャートを広く';
+    requestAnimationFrame(render);
+  }
+
+  let resizeTimer;
+
+  function saveBaseline() {
+    if (
+      project.baseline &&
+      !confirm(
+        '現在の基準計画を置き換えます。古い基準計画を残す場合は、先にJSON保存してください。置き換えますか？',
+      )
+    ) {
+      return;
+    }
+    project.baseline = {
+      savedAt: getTodayDate(),
+      tasks: Object.fromEntries(
+        project.tasks.map((task) => [
+          task.id,
+          { start: task.start, end: task.end, milestone: task.milestone },
+        ]),
+      ),
+    };
+    persist();
+    toast('現在の計画を基準計画として保存しました');
+  }
+
+  function reschedulePendingTasks() {
+    const analysis = analyzeSchedule(project.tasks, 'all', project.excludeWeekends);
+    const changed = project.tasks.filter(
+      (task) =>
+        !task.milestone &&
+        analysis.es[task.id] > toDayNumber(task.start) &&
+        task.progress === 0 &&
+        !task.actualStart,
+    );
+    if (!changed.length) {
+      toast('後ろに移動する未着手の通常タスクはありません。マイルストーンは移動しません');
+      return;
+    }
+    if (
+      !confirm(
+        `${changed.length}件の未着手タスクを、先行タスクの完了後へ移動します。マイルストーンと着手済みのタスクは動かしません。実行しますか？`,
+      )
+    ) {
+      return;
+    }
+    for (const task of changed) {
+      task.start = toDateString(analysis.es[task.id]);
+      task.end = toDateString(analysis.ef[task.id] - 1);
+    }
+    persist();
+    toast('依存関係に合わせて日程を更新しました');
+  }
+
+  function changeWorkingCalendar(event) {
+    const updatedProject = structuredClone(project);
+    updatedProject.excludeWeekends = event.target.checked;
+    try {
+      validateProject(updatedProject);
+      project = updatedProject;
+      persist();
+      toast('計算方法を変更しました。日付の変更は「依存に合わせて日程調整」で行えます');
+    } catch (error) {
+      event.target.checked = !!project.excludeWeekends;
+      toast(error.message);
+    }
+  }
+
+  function download(name, content, type) {
+    const url = URL.createObjectURL(new Blob([content], { type }));
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    downloadLink.download = name;
+    downloadLink.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  async function saveProjectFile() {
+    try {
+      const text = JSON.stringify(project, null, 2);
+      if (projectFileHandle) {
+        const writable = await projectFileHandle.createWritable();
+        await writable.write(text);
+        await writable.close();
+        toast('開いたJSONファイルへ保存しました');
+      } else {
+        download(project.name.replace(/[\\/:*?"<>|]/g, '_') + '.json', text, 'application/json');
+        toast('JSONを保存しました。共有フォルダに置いて使えます');
+      }
+      hasUnsavedChanges = false;
+    } catch (error) {
+      toast('保存できませんでした：' + error.message);
+    }
+  }
+  async function openProjectFile() {
+    if (
+      hasUnsavedChanges &&
+      !confirm(
+        'JSONファイルを開くと現在の表示を置き換えます。必要なら先にJSON保存してください。続けますか？',
+      )
+    ) {
+      return;
+    }
+    if (window.showOpenFilePicker) {
+      try {
+        const [handle] = await showOpenFilePicker({
+          types: [{ description: 'プロジェクトJSON', accept: { 'application/json': ['.json'] } }],
+          multiple: false,
+        });
+        const loadedProject = validateProject(JSON.parse(await (await handle.getFile()).text()));
+        project = loadedProject;
+        projectFileHandle = handle;
+        persist();
+        hasUnsavedChanges = false;
+        toast('読み込みました。JSON保存で同じファイルに上書きできます');
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          toast('読込できませんでした：' + error.message);
+        }
+      }
+    } else {
+      $('fileInput').click();
+    }
+  }
+  async function loadProjectFromFileInput(event) {
+    try {
+      const file = event.target.files[0];
+      if (!file) {
+        return;
+      }
+      project = validateProject(JSON.parse(await file.text()));
+      projectFileHandle = null;
+      persist();
+      hasUnsavedChanges = false;
+      toast('読み込みました');
+    } catch (error) {
+      toast('読込できませんでした：' + error.message);
+    } finally {
+      event.target.value = '';
+    }
+  }
+
+  function startNewProject() {
+    if (
+      !confirm('新規プロジェクトに切り替えます。現在の内容は先にJSON保存してください。続けますか？')
+    ) {
+      return;
+    }
+    project = {
+      version: 1,
+      name: '新しいプロジェクト',
+      tasks: [],
+      target: 'all',
+      statusDate: getTodayDate(),
+      baseline: null,
+    };
+    projectFileHandle = null;
+    persist();
+  }
+
+  function loadSampleProject() {
+    if (
+      !confirm('講演会サンプルに切り替えます。現在の内容は先にJSON保存してください。続けますか？')
+    ) {
+      return;
+    }
+    project = createSampleProject();
+    projectFileHandle = null;
+    persist();
+  }
+
+  bindEvents();
+  render();
+
+  // DOMイベントの登録はここに集約する。
+  function bindEvents() {
+    $('chart').onclick = handleChartClick;
+    $('taskForm').onsubmit = saveTaskFromForm;
+    $('f_milestone').onchange = synchronizeMilestoneDates;
+    $('f_start').oninput = synchronizeMilestoneDates;
+    $('f_start').onchange = synchronizeMilestoneDates;
+    $('deleteTask').onclick = deleteSelectedTask;
+    $('expandChart').onclick = toggleChartExpansion;
+    window.addEventListener('keydown', (event) => {
+      if (
+        event.key === 'Escape' &&
+        document.body.classList.contains('chartfocus') &&
+        !$('dialog').open &&
+        !$('helpDialog').open
+      ) {
+        document.body.classList.remove('chartfocus');
+        $('expandChart').textContent = 'チャートを広く';
+        render();
+      }
+    });
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(render, 100);
+    });
+    $('closeDialog').onclick = () => $('dialog').close();
+    $('addTask').onclick = () => openTask();
+    $('projectName').onchange = (event) => {
+      project.name = event.target.value.trim() || '新しいプロジェクト';
+      persist();
+    };
+    $('statusDate').onchange = (event) => {
+      if (event.target.value) {
+        project.statusDate = event.target.value;
+        persist();
+      }
+    };
+    $('target').onchange = (event) => {
+      project.target = event.target.value;
+      project.targetSelection = 'manual';
+      persist();
+    };
+    $('excludeWeekends').onchange = changeWorkingCalendar;
+    $('scale').onchange = (event) => {
+      viewOptions.scale = Number(event.target.value);
+      render();
+    };
+    for (const optionName of ['baseline', 'actual', 'lightning', 'deps', 'critical']) {
+      $('v_' + optionName).onchange = (event) => {
+        viewOptions[optionName] = event.target.checked;
+        render();
+      };
+    }
+    $('saveBaseline').onclick = saveBaseline;
+    $('schedule').onclick = reschedulePendingTasks;
+    $('saveFile').onclick = saveProjectFile;
+    $('openFile').onclick = openProjectFile;
+    $('fileInput').onchange = loadProjectFromFileInput;
+    $('newProject').onclick = startNewProject;
+    $('loadSample').onclick = loadSampleProject;
+    $('print').onclick = () => window.print();
+    $('helpButton').onclick = () => $('helpDialog').showModal();
+    $('closeHelp').onclick = () => $('helpDialog').close();
+    window.addEventListener('beforeunload', (event) => {
+      if (hasUnsavedChanges) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    });
+  }
+}
+
+if (typeof document !== 'undefined') {
+  initializeApp();
+}
+
+    </script>
+  </body>
+</html>
