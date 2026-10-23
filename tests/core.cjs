@@ -193,3 +193,35 @@ assert.equal(defaultTarget([milestoneTargets[2]], '2027-01-01'), 'all');
 console.log(
   'PASS: nearest upcoming milestone, same-day target, stable ties, no upcoming milestones',
 );
+
+// Date.parseがコメント扱いで受理する文字列でも、JSONの日付には許可しない。
+const baselineInjection = '2026-11-01 ("><img src=x onerror="globalThis.__baselineXss=1">(';
+assert(Number.isFinite(day(baselineInjection)));
+for (const field of ['start', 'end']) {
+  for (const value of [
+    baselineInjection,
+    '2026-02-30',
+    '2026-11-01 (comment)',
+    '2026-11-01 ',
+    ['2026-11-01'],
+    null,
+    20261101,
+  ]) {
+    const project = sample();
+    project.baseline.tasks.T01[field] = value;
+    assert.throws(() => validate(JSON.parse(JSON.stringify(project))), /基準計画の日付/);
+  }
+}
+for (const tasks of ['invalid', 1, [], null]) {
+  assert.throws(() => validate({ ...sample(), baseline: { tasks } }), /基準計画/);
+}
+for (const baseline of [undefined, null]) {
+  const project = { ...sample(), baseline };
+  assert.deepEqual(validate(JSON.parse(JSON.stringify(project))).tasks, project.tasks);
+}
+const leapYearProject = sample();
+leapYearProject.baseline.tasks.T01 = { start: '2028-02-29', end: '2028-03-01' };
+assert.deepEqual(validate(JSON.parse(JSON.stringify(leapYearProject))), leapYearProject);
+console.log(
+  'PASS: strict baseline dates, date-parser injection rejection, baseline structure, legacy and leap-year compatibility',
+);

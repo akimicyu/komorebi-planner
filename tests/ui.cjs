@@ -236,3 +236,39 @@ for (const excludeWeekends of [false, true]) {
 console.log(
   'PASS: task and milestone reordering, boundaries, persistence, unchanged task data and baseline, separate move/edit actions',
 );
+
+async function testUntrustedBaseline() {
+  const payload = '2027-01-04 ("><img src=x onerror="globalThis.__baselineXss=1">(';
+  const maliciousBaseline = {
+    savedAt: '2027-01-01',
+    tasks: { A: { start: payload, end: '2027-01-08' } },
+  };
+  const app = openTestApp(false);
+  const before = app.readProject();
+  const incomingProject = { ...before, baseline: maliciousBaseline };
+  await app.elements.fileInput.onchange({
+    target: { files: [{ text: async () => JSON.stringify(incomingProject) }], value: 'test.json' },
+  });
+  assert.match(app.elements.toast.textContent, /読込できませんでした.*基準計画の日付/);
+  assert.deepEqual(app.readProject(), before);
+  assert(!app.elements.chart.innerHTML.includes('__baselineXss'));
+  assert(!app.elements.chart.innerHTML.includes('<img'));
+
+  // 旧版が保存済みの不正データも、起動時の検証で描画前に拒否する。
+  for (const excludeWeekends of [false, true]) {
+    const restored = openTestApp(excludeWeekends, { baseline: maliciousBaseline });
+    assert(!restored.elements.chart.innerHTML.includes('__baselineXss'));
+    assert(!restored.elements.chart.innerHTML.includes('<img'));
+  }
+  const reloaded = openTestApp(false, app.readProject());
+  assert(!reloaded.elements.chart.innerHTML.includes('__baselineXss'));
+  assert(!reloaded.elements.chart.innerHTML.includes('<img'));
+  console.log(
+    'PASS: malicious JSON import rejected before storage/render, unsafe legacy storage rejected on startup',
+  );
+}
+
+testUntrustedBaseline().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
