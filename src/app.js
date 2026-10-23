@@ -12,6 +12,14 @@ function toDateString(dayNumber) {
   return new Date(dayNumber * MILLISECONDS_PER_DAY).toISOString().slice(0, 10);
 }
 
+function isValidDateString(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+  const dayNumber = toDayNumber(value);
+  return Number.isFinite(dayNumber) && toDateString(dayNumber) === value;
+}
+
 // 「今日」の表示は利用者のローカル日付に合わせる。
 function getTodayDate() {
   const currentDate = new Date();
@@ -277,11 +285,7 @@ function validateProject(project) {
       throw Error('タスク名が必要です');
     }
     for (const fieldName of ['start', 'end']) {
-      if (
-        !/^\d{4}-\d{2}-\d{2}$/.test(task[fieldName]) ||
-        !Number.isFinite(toDayNumber(task[fieldName])) ||
-        toDateString(toDayNumber(task[fieldName])) !== task[fieldName]
-      ) {
+      if (!isValidDateString(task[fieldName])) {
         throw Error('日付を確認してください');
       }
     }
@@ -305,12 +309,7 @@ function validateProject(project) {
       throw Error('待ち日数は0〜365日です');
     }
     for (const fieldName of ['actualStart', 'actualEnd']) {
-      if (
-        task[fieldName] &&
-        (!/^\d{4}-\d{2}-\d{2}$/.test(task[fieldName]) ||
-          !Number.isFinite(toDayNumber(task[fieldName])) ||
-          toDateString(toDayNumber(task[fieldName])) !== task[fieldName])
-      ) {
+      if (task[fieldName] && !isValidDateString(task[fieldName])) {
         throw Error('実績日を確認してください');
       }
     }
@@ -324,12 +323,7 @@ function validateProject(project) {
       throw Error('実績終了日を入れる場合は進捗を100%にしてください');
     }
   }
-  if (
-    project.statusDate &&
-    (!/^\d{4}-\d{2}-\d{2}$/.test(project.statusDate) ||
-      !Number.isFinite(toDayNumber(project.statusDate)) ||
-      toDateString(toDayNumber(project.statusDate)) !== project.statusDate)
-  ) {
+  if (project.statusDate && !isValidDateString(project.statusDate)) {
     throw Error('基準日が不正です');
   }
   if (
@@ -345,6 +339,7 @@ function validateProject(project) {
     if (
       typeof project.baseline !== 'object' ||
       !project.baseline.tasks ||
+      typeof project.baseline.tasks !== 'object' ||
       Array.isArray(project.baseline.tasks)
     ) {
       throw Error('基準計画が不正です');
@@ -352,8 +347,8 @@ function validateProject(project) {
     for (const baseline of Object.values(project.baseline.tasks)) {
       if (
         !baseline ||
-        !Number.isFinite(toDayNumber(baseline.start)) ||
-        !Number.isFinite(toDayNumber(baseline.end)) ||
+        !isValidDateString(baseline.start) ||
+        !isValidDateString(baseline.end) ||
         toDayNumber(baseline.end) < toDayNumber(baseline.start)
       ) {
         throw Error('基準計画の日付が不正です');
@@ -692,7 +687,7 @@ function initializeApp() {
       : toDayNumber(baseline.end) - toDayNumber(baseline.start) + 1;
     const width = Math.max(4, duration * layout.pixelsPerDay);
     const left = layout.dateToX(toDayNumber(baseline.start));
-    return `<div class="base" style="left:${left}px;width:${width}px" title="基準計画 ${baseline.start}〜${baseline.end}"></div>`;
+    return `<div class="base" style="left:${left}px;width:${width}px" title="${escapeHtml(`基準計画 ${baseline.start}〜${baseline.end}`)}"></div>`;
   }
 
   function renderPlannedBar(task, isCritical, layout) {
@@ -711,7 +706,7 @@ function initializeApp() {
         class="bar ${task.milestone ? 'milestone' : ''} ${isCritical ? 'critical' : ''}"
         data-id="${escapeHtml(task.id)}"
         style="left:${left}px;width:${width}px"
-        title="${escapeHtml(task.name)}：${task.start}〜${task.end}"
+        title="${escapeHtml(`${task.name}：${task.start}〜${task.end}`)}"
       >${progress}</button>`;
   }
 
@@ -726,7 +721,7 @@ function initializeApp() {
       : Math.max(startDay, layout.statusDay);
     const width = Math.max(4, (endDay - startDay + 1) * layout.pixelsPerDay);
     const left = layout.dateToX(startDay);
-    return `<div class="actual" style="left:${left}px;width:${width}px" title="実績 ${task.actualStart}〜${task.actualEnd || '基準日まで（未完了）'}"></div>`;
+    return `<div class="actual" style="left:${left}px;width:${width}px" title="${escapeHtml(`実績 ${task.actualStart}〜${task.actualEnd || '基準日まで（未完了）'}`)}"></div>`;
   }
 
   function renderDependencyPaths(layout, analysis) {
