@@ -39,6 +39,7 @@ npm run format:check  # 書式の確認だけを実行
 ```text
 src/app.js          編集・保存・計算・チャート描画
 src/template.html   画面構造とスタイル
+src/icon.svg        ヘッダーアイコンとファビコンの共通デザイン
 scripts/build.mjs   ソースと利用説明をHTML1枚にまとめる
 scripts/help.mjs    利用説明のMarkdownをHTMLへ変換
 index.html          生成済みアプリ・GitHub Pagesの公開入口
