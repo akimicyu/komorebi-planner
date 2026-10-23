@@ -494,7 +494,9 @@ function initializeApp() {
     }
 
     const layout = createChartLayout();
-    const rows = project.tasks.map((task) => renderTaskRow(task, analysis, layout)).join('');
+    const rows = project.tasks
+      .map((task, index) => renderTaskRow(task, index, analysis, layout))
+      .join('');
     const chart = `
       <div class="grid ${project.excludeWeekends ? 'weekends-excluded' : ''}" style="width:${layout.leftWidth + layout.chartWidth}px;--day-width:${layout.pixelsPerDay}px;--weekday-width:${layout.pixelsPerDay * 5}px;--week-width:${layout.pixelsPerDay * 7}px;--week-offset:${layout.weekOffset}px">
         ${renderTimelineHeader(layout)}
@@ -504,11 +506,6 @@ function initializeApp() {
         ${renderChartOverlay(layout, analysis)}
       </div>`;
     $('chart').innerHTML = chart;
-    $('chart')
-      .querySelectorAll('[data-id]')
-      .forEach((button) => {
-        button.onclick = () => openTask(button.dataset.id);
-      });
     $('note').textContent =
       `目標までの余裕：現在の開始日を「これより前に着手しない日」として計算。灰色の余裕「—」は選択目標の対象外。${project.baseline ? 'イナズマ線は基準計画' : 'イナズマ線は現在計画'}と進捗率から算出。`;
   }
@@ -647,7 +644,7 @@ function initializeApp() {
       </div>`;
   }
 
-  function renderTaskRow(task, analysis, layout) {
+  function renderTaskRow(task, index, analysis, layout) {
     const slack = analysis.slack[task.id];
     const isCritical = slack === 0 && viewOptions.critical;
     const hasDependencyConflict = analysis.es[task.id] > toDayNumber(task.start);
@@ -662,15 +659,21 @@ function initializeApp() {
     const endLabel = task.end.slice(5).replace('-', '/');
 
     return `
-      <button class="task left ${isCritical ? 'iscritical' : ''}" data-id="${escapeHtml(task.id)}">
-        <span class="tasktext">
-          <small>${escapeHtml(task.id)} ${task.milestone ? '◆' : ''} · ${escapeHtml(task.owner || '担当未設定')}</small>
-          <strong>${escapeHtml(task.name)}</strong>
-        </span>
+      <div class="task left ${isCritical ? 'iscritical' : ''}" data-id="${escapeHtml(task.id)}">
+        <div class="task-name">
+          <div class="task-moves">
+            <button type="button" data-move="-1" data-move-id="${escapeHtml(task.id)}" aria-label="${escapeHtml(task.name)}を上へ" ${index === 0 ? 'disabled' : ''}>↑ 上へ</button>
+            <button type="button" data-move="1" data-move-id="${escapeHtml(task.id)}" aria-label="${escapeHtml(task.name)}を下へ" ${index === project.tasks.length - 1 ? 'disabled' : ''}>↓ 下へ</button>
+          </div>
+          <button type="button" class="tasktext">
+            <small>${escapeHtml(task.id)} ${task.milestone ? '◆' : ''} · ${escapeHtml(task.owner || '担当未設定')}</small>
+            <strong>${escapeHtml(task.name)}</strong>
+          </button>
+        </div>
         <span class="period">${escapeHtml(startLabel)} → ${escapeHtml(endLabel)}${warning}</span>
         <span class="pct">${task.progress}%</span>
         <span class="slack">${slack === undefined ? '—' : slack + '日'}</span>
-      </button>
+      </div>
       <div class="lane" style="width:${layout.chartWidth}px">
         ${renderBaselineBar(task, layout)}
         ${renderPlannedBar(task, isCritical, layout)}
@@ -845,6 +848,44 @@ function initializeApp() {
     $('dialogTitle').textContent = id ? 'タスクを編集' : 'タスクを追加';
     $('formError').textContent = '';
     $('dialog').showModal();
+  }
+
+  function moveTask(id, direction) {
+    const index = project.tasks.findIndex((task) => task.id === id);
+    const destination = index + direction;
+    if (
+      index < 0 ||
+      ![-1, 1].includes(direction) ||
+      destination < 0 ||
+      destination >= project.tasks.length
+    ) {
+      return;
+    }
+    [project.tasks[index], project.tasks[destination]] = [
+      project.tasks[destination],
+      project.tasks[index],
+    ];
+    persist();
+    const moveButtons = [...$('chart').querySelectorAll('[data-move-id]')].filter(
+      (button) => button.dataset.moveId === id && !button.disabled,
+    );
+    const nextButton =
+      moveButtons.find((button) => Number(button.dataset.move) === direction) || moveButtons[0];
+    nextButton?.focus({ preventScroll: true });
+  }
+
+  function handleChartClick(event) {
+    const moveButton = event.target.closest('[data-move]');
+    if (moveButton) {
+      if (!moveButton.disabled) {
+        moveTask(moveButton.dataset.moveId, Number(moveButton.dataset.move));
+      }
+      return;
+    }
+    const taskElement = event.target.closest('[data-id]');
+    if (taskElement) {
+      openTask(taskElement.dataset.id);
+    }
   }
 
   function synchronizeMilestoneDates() {
@@ -1108,6 +1149,7 @@ function initializeApp() {
 
   // DOMイベントの登録はここに集約する。
   function bindEvents() {
+    $('chart').onclick = handleChartClick;
     $('taskForm').onsubmit = saveTaskFromForm;
     $('f_milestone').onchange = synchronizeMilestoneDates;
     $('f_start').oninput = synchronizeMilestoneDates;

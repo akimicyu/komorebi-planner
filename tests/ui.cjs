@@ -45,8 +45,12 @@ function openTestApp(excludeWeekends, overrides = {}) {
         clientWidth: 1600,
         classList: { add() {}, remove() {} },
         reset() {},
-        showModal() {},
-        close() {},
+        showModal() {
+          this.open = true;
+        },
+        close() {
+          this.open = false;
+        },
         querySelectorAll(selector) {
           if (selector === '[data-id]') {
             return ['A', 'B', 'M', 'S'].map((id) => elements[id]);
@@ -59,7 +63,14 @@ function openTestApp(excludeWeekends, overrides = {}) {
     ]),
   );
   for (const id of ['A', 'B', 'M', 'S']) {
-    elements[id] = { dataset: { id } };
+    elements[id] = {
+      dataset: { id },
+      onclick() {
+        elements.chart.onclick({
+          target: { closest: (selector) => (selector === '[data-id]' ? elements[id] : null) },
+        });
+      },
+    };
   }
   vm.runInNewContext(source, {
     document: { getElementById: (id) => elements[id] },
@@ -163,4 +174,65 @@ assert.equal(
 );
 console.log(
   'PASS: automatic target changes with status date, manual choices and legacy targets survive reload',
+);
+
+function clickMove(elements, id, direction, disabled = false) {
+  const button = { dataset: { moveId: id, move: String(direction) }, disabled };
+  elements.chart.onclick({
+    target: { closest: (selector) => (selector === '[data-move]' ? button : elements[id]) },
+  });
+}
+
+for (const excludeWeekends of [false, true]) {
+  const app = openTestApp(excludeWeekends, {
+    target: 'B',
+    targetSelection: 'manual',
+    baseline: {
+      savedAt: '2027-01-01',
+      tasks: { M: { start: '2027-01-06', end: '2027-01-06', milestone: true } },
+    },
+  });
+  const before = app.readProject();
+  clickMove(app.elements, 'A', -1);
+  assert.deepEqual(app.readProject(), before);
+  clickMove(app.elements, 'S', 1);
+  assert.deepEqual(app.readProject(), before);
+  clickMove(app.elements, 'B', -1);
+  assert.deepEqual(
+    app.readProject().tasks.map((task) => task.id),
+    ['B', 'A', 'M', 'S'],
+  );
+  assert.notEqual(app.elements.dialog.open, true);
+  clickMove(app.elements, 'B', 1);
+  clickMove(app.elements, 'B', 1);
+  assert.deepEqual(
+    app.readProject().tasks.map((task) => task.id),
+    ['A', 'M', 'B', 'S'],
+  );
+  clickMove(app.elements, 'M', -1);
+  const after = app.readProject();
+  assert.deepEqual(
+    after.tasks.map((task) => task.id),
+    ['M', 'A', 'B', 'S'],
+  );
+  assert.deepEqual(
+    after.tasks.slice().sort((a, b) => a.id.localeCompare(b.id)),
+    before.tasks,
+  );
+  assert.deepEqual(after.baseline, before.baseline);
+  assert.equal(after.target, before.target);
+  const reloaded = openTestApp(excludeWeekends, after);
+  const rowIds = [
+    ...reloaded.elements.chart.innerHTML.matchAll(/class="task left[^"]*" data-id="([^"]+)"/g),
+  ].map(([, id]) => id);
+  assert.deepEqual(rowIds, ['M', 'A', 'B', 'S']);
+  assert.match(reloaded.elements.chart.innerHTML, /data-move="-1" data-move-id="M"[^>]*disabled/);
+  assert.match(reloaded.elements.chart.innerHTML, /data-move="1" data-move-id="S"[^>]*disabled/);
+  clickMove(reloaded.elements, 'M', -1, true);
+  assert.deepEqual(reloaded.readProject(), after);
+  reloaded.elements.M.onclick();
+  assert.equal(reloaded.elements.dialog.open, true);
+}
+console.log(
+  'PASS: task and milestone reordering, boundaries, persistence, unchanged task data and baseline, separate move/edit actions',
 );
